@@ -1,0 +1,53 @@
+# <type>(<scope>): <subject>
+# ------------------------------------------------------------
+# <type>  : feat | fix | docs | style | refactor | test | chore
+# <scope> : 변경된 모듈/도메인/패키지/기능명 (선택)
+# <subject> : 명령형, 현재 시제, 첫 글자 소문자, 문장부호 X
+#
+# 예시:
+# feat(member): change member API response structure
+# fix(user): prevent null pointer on user deletion
+# docs(readme): update usage examples
+# ------------------------------------------------------------
+
+<type>(<scope>): <subject>
+
+# ------------------------------------------------------------
+# BODY (선택 사항)
+# ------------------------------------------------------------
+# - 변경 이유, 목적, 이전 동작과의 차이를 명확히 설명
+# - 명령형, 현재 시제 사용 (“change” not “changed”)
+# - 100자 이내로 작성
+#
+# 예시:
+# Refactored the MemberResponse DTO to include nested profile information
+# and remove deprecated 'nickname' field. This improves data consistency
+# between member and profile domains.
+# ------------------------------------------------------------
+
+<body>
+
+# ------------------------------------------------------------
+# FOOTER (선택 사항)
+# ------------------------------------------------------------
+# 1️⃣ Breaking Change가 있을 경우:
+# BREAKING CHANGE: <무엇이 어떻게 바뀌었는지, 마이그레이션 방법>
+#
+# 예시:
+# BREAKING CHANGE: removed onHashChange in favor of onUrlChange
+#
+# 2️⃣ 관련 이슈가 있을 경우:
+# Closes #123
+# Closes #45, #67
+# ------------------------------------------------------------
+
+<footer>
+
+# ------------------------------------------------------------
+# ⚠️ 주의
+# ------------------------------------------------------------
+# - 각 줄은 100자를 넘지 말 것
+# - subject는 한 줄로 간결하게 작성
+# - body와 footer는 비워둘 수 있음
+# - git commit -t .gitmessage.txt 로 미리보기 가능
+# ------------------------------------------------------------
