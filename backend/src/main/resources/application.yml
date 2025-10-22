@@ -34,3 +34,9 @@ spring:
       enabled: true
       # 콘솔 접속 경로 (http://localhost:8080/h2-console 로 접속)
       path: /h2-console
+
+  data:
+    redis:
+      host: ${REDIS_HOST}  # Redis 설치한 IP (로컬이면 보통 127.0.0.1)
+      port: ${REDIS_PORT}      # Redis 기본 포트
+      # password: yourpassword # 비밀번호 설정했으면 추가
