@@ -34,3 +34,24 @@ spring:
       enabled: true
       # 콘솔 접속 경로 (http://localhost:8080/h2-console 로 접속)
       path: /h2-console
+
+  # ==================================
+  # 4. OAuth 2.0 소셜 로그인 설정 (신규 추가)
+  # ==================================
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+
+# ==================================
+# 5. JWT 설정 (기존 설정)
+# ==================================
+jwt:
+  secret: ${jwt_secret}
+  expiration-ms: 3600000 # 1시간 (밀리초 단위)
