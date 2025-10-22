@@ -1,9 +1,6 @@
 package com.example.backend.project.service;
 
-import com.example.backend.project.dto.CreateProjectDto;
-import com.example.backend.project.dto.ProjectDetailDto;
-import com.example.backend.project.dto.ProjectListItemDto;
-import com.example.backend.project.dto.UpdateProjectDto;
+import com.example.backend.project.dto.*;
 
 import java.util.List;
 
@@ -13,4 +10,6 @@ public interface ProjectService {
     ProjectDetailDto getProjectDetail(Long id);
     List<ProjectListItemDto> getProjectsByOwner(Long userId);
     void deleteProject(Long id, Long userId);
+    ProjectMediaDto addMedia(Long projectId, CreateMediaDto dto, Long userId);
+    void removeMedia(Long projectId, Long mediaId, Long userId);
 }
