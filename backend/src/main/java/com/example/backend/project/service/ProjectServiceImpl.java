@@ -53,7 +53,7 @@ public class ProjectServiceImpl implements ProjectService{
 
     @Override
     @Transactional(readOnly = true)
-    public ProjectDetailDto getProjectDetail(Long projectId/*, Long viewerId*/) {
+    public ProjectDetailDto getProjectDetail(Long projectId, Long viewerId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
 
