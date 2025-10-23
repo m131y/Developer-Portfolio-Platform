@@ -14,6 +14,11 @@ java {
 	}
 }
 
+ext {
+	// Spring Boot 3.x 버전에 호환되는 Spring Cloud AWS 버전
+	set('springCloudAwsVersion', "3.1.1")
+}
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -24,18 +29,26 @@ repositories {
 	mavenCentral()
 }
 
+dependencyManagement {
+	imports {
+		// 1. 스프링 부트 BOM (Lombok/Web 오류 방지용)
+		mavenBom "org.springframework.boot:spring-boot-dependencies:3.5.6"
+
+		// 2. AWS BOM (신버전 라이브러리 이름으로 변경)
+		mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	developmentOnly 'com.h2database:h2'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -46,6 +59,7 @@ dependencies {
 	//runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -55,8 +69,7 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-	// OAuth 소셜 로그인
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 }
 
 tasks.named('test') {
