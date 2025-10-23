@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "prjects")
+@Table(name = "projects")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Project {
 
@@ -36,6 +36,9 @@ public class Project {
     private String demoUrl;
     private String docUrl;
     private String thumbnailUrl;
+
+    @Column(length = 10)
+    private String visibility;
 
     @Column(nullable = false)
     private Long ownerId;

@@ -58,6 +58,11 @@ public class ProjectServiceImpl implements ProjectService{
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
 
         //visibility (추가 or X)
+        if ("PRIVATE".equalsIgnoreCase(project.getVisibility())) {
+            if (viewerId == null || !project.getOwnerId().equals(viewerId)){
+                throw new EntityNotFoundException("Not Authorized");
+            }
+        }
 
         ProjectDetailDto out = mapper.toDetail(project);
         var mediaList = mediaRepository.findByProjectId(projectId);
@@ -111,4 +116,17 @@ public class ProjectServiceImpl implements ProjectService{
         mediaRepository.deleteById(mediaId);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProjectListItemDto> searchProjects(String keyword) {
+        if (keyword == null || keyword.isBlank()){
+            return List.of();
+        }
+        String sanitized = keyword.trim();
+        return projectRepository
+                .findByTitleContainingIgnoreCaseOrSummaryContainingIgnoreCase(sanitized, sanitized)
+                .stream()
+                .map(mapper::toListItem)
+                .toList();
+    }
 }

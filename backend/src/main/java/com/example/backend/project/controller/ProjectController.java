@@ -88,7 +88,13 @@ public class ProjectController {
             @PathVariable Long mediaId){
         projectService.removeMedia(projectId, mediaId, currentUserId(uid));
         return ResponseEntity.noContent().build();
-
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ProjectListItemDto>> searchProjects(
+            @RequestParam String keyword) {
+        return ResponseEntity.ok(projectService.searchProjects(keyword));
+    }
+
 
 }
