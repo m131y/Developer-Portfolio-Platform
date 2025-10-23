@@ -10,4 +10,15 @@ import java.util.List;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByOwnerId(Long ownerId);
 
+
+    /**
+     * Find projects where the title or summary contains the provided keyword,
+     * case‑insensitive. Spring Data will derive the appropriate query based
+     * on the method name.
+     *
+     * @param titleKeyword   substring to search for in the title
+     * @param summaryKeyword substring to search for in the summary
+     * @return list of matching projects
+     */
+    List<Project> findByTitleContainingIgnoreCaseOrSummaryContainingIgnoreCase(String titleKeyword, String summaryKeyword);
 }

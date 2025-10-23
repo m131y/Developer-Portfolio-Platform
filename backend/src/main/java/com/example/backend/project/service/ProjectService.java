@@ -12,4 +12,6 @@ public interface ProjectService {
     void deleteProject(Long id, Long userId);
     ProjectMediaDto addMedia(Long projectId, CreateMediaDto dto, Long userId);
     void removeMedia(Long projectId, Long mediaId, Long userId);
+
+    List<ProjectListItemDto> searchProjects(String keyword);
 }
