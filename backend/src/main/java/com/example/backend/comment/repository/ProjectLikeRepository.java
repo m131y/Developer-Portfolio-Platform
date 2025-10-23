@@ -1,4 +1,4 @@
 package com.example.backend.comment.repository;
 
-public class ProjcetLikeRepository {
+public class ProjectLikeRepository {
 }
