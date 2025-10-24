@@ -50,10 +50,12 @@ public class User {
 
     // 소셜 링크
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<SocialLink> socialLinks = new ArrayList<>();
 
     // 사용자-기술 스택 매핑
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserTechStack> userTechStacks = new ArrayList<>();
 
     /**

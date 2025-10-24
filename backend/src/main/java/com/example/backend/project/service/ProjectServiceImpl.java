@@ -8,6 +8,8 @@ import com.example.backend.project.repository.ProjectMediaRepository;
 import com.example.backend.project.repository.ProjectRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -128,5 +130,12 @@ public class ProjectServiceImpl implements ProjectService{
                 .stream()
                 .map(mapper::toListItem)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProjectListItemDto> getAllProjects(Pageable pageable) {
+        return projectRepository.findAll(pageable)
+                .map(mapper::toListItem);
     }
 }

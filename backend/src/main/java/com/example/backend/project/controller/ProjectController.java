@@ -6,10 +6,13 @@ import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +33,12 @@ public class ProjectController {
         return userRepository.findByEmail(email)
                 .map(User::getId)
                 .orElseThrow(() -> new IllegalStateException("User not found for email " + email));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<ProjectListItemDto>> getAll(
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(projectService.getAllProjects(pageable));
     }
 
     @PostMapping
