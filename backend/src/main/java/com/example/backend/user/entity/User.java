@@ -2,6 +2,7 @@ package com.example.backend.user.entity;
 
 import com.example.backend.message.entity.Message;
 import com.example.backend.message.entity.MessageRoom;
+import com.example.backend.notification.entity.Notification;
 import com.example.backend.message.entity.RoomParticipant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -76,6 +77,13 @@ public class User {
     @JsonIgnore
     private Set<RoomParticipant> roomParticipants = new HashSet<>();
 
+    /**
+     *  알림 관련 연관관계 설정
+     */
+    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY)
+    @Builder.Default
+    @JsonIgnore
+    private Set<Notification> notifications = new HashSet<>();
 
     /**
      * 소셜 링크를 추가합니다. (양방향 연관관계 설정)

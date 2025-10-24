@@ -55,11 +55,6 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getRoomInfo(roomId));
     }
 
-//    @GetMapping("/api/message/messages")
-//    public List<Message> getMessages() {
-//        return chatService.getMessages();
-//    }
-
     @PostMapping("/api/messages/rooms/{roomId}/join")
     public RoomParticipantDto joinMessageRoom(
             @PathVariable Long roomId,
