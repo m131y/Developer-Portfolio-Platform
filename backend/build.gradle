@@ -49,6 +49,7 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	developmentOnly 'com.h2database:h2'
+	runtimeOnly 'com.h2database:h2'
 
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
