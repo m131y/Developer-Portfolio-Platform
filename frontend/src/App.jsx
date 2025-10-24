@@ -6,6 +6,7 @@ import OAuthRedirectPage from "./pages/OAuthRedirectPage";
 import ProjectsList from "./pages/projectsList";
 import CreateProjects from "./pages/createProjects";
 import ProjectDetails from "./pages/projectDetail";
+import EditProject from "./pages/editProject";
 
 /**
  * URL 경로에 따라 어떤 페이지를 보여줄지 결정 (라우터 설정)
@@ -21,6 +22,7 @@ const App = () => {
       <Route path="/projects" element={<ProjectsList />} />
       <Route path="/projects/new" element={<CreateProjects />} />
       <Route path="/projects/:id" element={<ProjectDetails />} />
+      <Route path="/projects/:id/edit" element={<EditProject />} />
 
       {/* "/oauth-redirect" 경로 접속 시 <OAuthRedirectPage>를 보여줌 */}
       <Route path="/oauth-redirect" element={<OAuthRedirectPage />} />

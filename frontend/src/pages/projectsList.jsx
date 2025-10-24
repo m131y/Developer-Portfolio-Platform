@@ -4,6 +4,7 @@ import Layout from "../components/layouts/MainLayout";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchWithAuth } from "../services/auth";
+import axios from "axios";
 
 const ProjectsList = () => {
   const [projects, setProjects] = useState([]);
@@ -12,15 +13,14 @@ const ProjectsList = () => {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetchWithAuth("/api/projects/search?keyword=");
-        if (!res.ok) {
-          throw new Error(`Failed to load projects: ${res.status}`);
-        }
-        const data = await res.json();
-        setProjects(data);
-      } catch (error) {
-        console.error(error);
-        setError(error.message);
+        //
+        // const res = await fetchWithAuth("/api/projects/search?keyword=");
+        const res = await axios.get("http://localhost:8080/api/projects")
+        console.log(res)
+        
+      } catch (err) {
+        console.error(err);
+        setError(err.message || String(err));
       }
     }
     load();
@@ -37,7 +37,7 @@ const ProjectsList = () => {
       <Header />
       <main className="w-full flex-grow flex flex-col items-center mt-[140px] py-10">
         <div className="container mx-auto p-4">
-          <h2 classname="text-2xl font-bold mb-4">Projects</h2>
+          <h2 className="text-2xl font-bold mb-4">Projects</h2>
           <ul>
             {projects.map((p) => (
               <li key={p.id} className="border-b py-2">
