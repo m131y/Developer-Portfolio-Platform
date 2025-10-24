@@ -1,67 +1,83 @@
 package com.example.backend.redis;
 
 import com.example.backend.message.dto.MessageDto;
+import com.example.backend.notification.dto.NotificationDto;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class RedisSubscriber implements MessageListener {
+public class RedisSubscriber implements MessageListener{
 
-    // WebSocket으로 클라이언트에게 메시지를 보내기 위한 도구
     private final SimpMessagingTemplate messagingTemplate;
-
-    // RedisTemplate에서 Value 직렬화 시 사용한 것과 동일한 JSON 직렬화 객체
     private final ObjectMapper objectMapper;
-
-    /**
-     * Redis에서 메시지를 수신할 때마다 MessageListenerAdapter에 의해 호출되는 메서드
-     * (RedisConfig에서 sendMessage로 이름을 지정했기 때문에 이 이름으로 사용합니다)
-     */
-//    public void sendMessage(String publishMessage) {
-//        try {
-//            // 1. 수신된 JSON 문자열 메시지를 채팅 메시지 객체로 변환
-//            ChatMessage chatMessage = objectMapper.readValue(publishMessage, ChatMessage.class);
-//
-//            // 2. WebSocket 클라이언트에게 메시지 전송
-//            // "/sub/chat/room/{roomId}" 주소를 구독하고 있는 모든 클라이언트에게 메시지를 보냅니다.
-//            String destination = "/sub/chat/room/" + chatMessage.getRoomId();
-//
-//            // messagingTemplate을 통해 WebSocket으로 메시지 전송
-//            messagingTemplate.convertAndSend(destination, chatMessage);
-//
-//        } catch (Exception e) {
-//            // 메시지 변환 또는 전송 오류 처리
-//            log.error("Redis 메시지 처리 오류: {}", e.getMessage());
-//        }
-//    }
+    private final StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
-            log.info("Redis 메시지 수신 성공!");
-            // 1. Redis 메시지의 본문(Body)을 바이트 배열로 추출합니다.
-            byte[] body = message.getBody();
+            // 1. 메시지 바디를 문자열(JSON)로 디코딩
+            String messageBody = stringSerializer.deserialize(message.getBody());
+            // 2. 채널 패턴을 문자열로 디코딩
+            String channel = new String(pattern, StandardCharsets.UTF_8);
 
-            // 2. 바이트 배열을 String으로 변환합니다. (Redis 직렬화 방식에 따라 달라집니다)
-            // String content = new String(body); // 또는 redisSerializer.deserialize(body);
+            log.info("Redis Message received - Channel: {}, Body: {}", channel, messageBody);
 
-            // 💡 바이트 배열을 ObjectMapper.readValue()로 직접 처리합니다.
-            MessageDto messageDto = objectMapper.readValue(body, MessageDto.class);
+            if (channel.startsWith("chat.room.")) {
+                // 3. 채팅 메시지 처리 (DB 2번)
+                handleChatMessage(messageBody);
 
-            // 3. STOMP 클라이언트에게 메시지 발행
-            String destination = "/sub/chat/room/" + messageDto.getRoomId();
-            messagingTemplate.convertAndSend(destination, messageDto);
+            } else if (channel.startsWith("notification.user.")) {
+                // 4. 알림 메시지 처리 (DB 3번)
+                handleNotificationMessage(messageBody);
+            }
 
         } catch (Exception e) {
-            // 오류 발생 시 로그 기록
-            log.error("Redis 메시지 역직렬화 또는 전달 오류: {}", e.getMessage(), e);
+            log.error("Error processing Redis message: {}", e.getMessage(), e);
         }
+    }
+
+    /**
+     * 채팅 메시지 처리 로직
+     */
+    private void handleChatMessage(String messageBody) throws JsonProcessingException {
+        MessageDto messageDto = objectMapper.readValue(messageBody, MessageDto.class);
+
+        // STOMP 경로로 전송
+        String destination = "/topic/chat/room/" + messageDto.getRoomId();
+
+        // /topic 경로는 구독한 모든 클라이언트에게 메시지를 브로드캐스팅합니다.
+        // 메시지 바디를 그대로 전송하거나, 다시 ChatMessage 객체를 전송합니다.
+        messagingTemplate.convertAndSend(destination, messageDto);
+        //messagingTemplate.convertAndSend(destination, messageBody);
+        log.info("Sent Chat Message to WebSocket destination: {}", destination);
+    }
+
+    /**
+     * 알림 메시지 처리 로직
+     */
+    private void handleNotificationMessage(String messageBody) throws JsonProcessingException {
+        NotificationDto notificationDto = objectMapper.readValue(messageBody, NotificationDto.class);
+
+        // STOMP 경로로 전송
+        String destination = "/queue/notifications";
+
+        // 1:1 메시징은 convertAndSendToUser를 사용해야 합니다.
+        // Spring이 사용자 ID(Principal)에 해당하는 세션의 /queue/notifications 경로로 메시지를 전달합니다.
+        String receiverId = notificationDto.getReceiverId();
+
+        messagingTemplate.convertAndSendToUser(receiverId, destination, notificationDto);
+        //messagingTemplate.convertAndSendToUser(receiverId, destination, messageBody);
+        log.info("Sent Notification to user {} at WebSocket destination: /user{}", receiverId, destination);
     }
 }
