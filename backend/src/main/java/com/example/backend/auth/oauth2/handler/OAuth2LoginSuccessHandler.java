@@ -31,30 +31,39 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         log.info("OAuth 2.0 로그인 성공!");
 
-        // 1. authentication 객체에서 OAuth2User를 가져온다.
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        // 2. CustomOAuth2UserService에서 "userEmail" 키로 저장했던 이메일을 꺼낸다.
-        String email = (String) oAuth2User.getAttribute("userEmail");
+        final String email = oAuth2User.getAttribute("userEmail") != null
+                ? (String) oAuth2User.getAttribute("userEmail")
+                : (String) oAuth2User.getAttribute("email");
 
-        // 3. 이메일로 DB에서 사용자를 조회한다.
+        log.info("OAuth 2.0 로그인 - 이메일: {}", email);
+
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("이메일에 해당하는 유저가 없습니다."));
+                .orElseGet(() -> {
+                    log.info("신규 OAuth2 사용자 생성: {}", email);
+                    String name = (String) oAuth2User.getAttribute("name");
+                    String provider = oAuth2User.getAttribute("sub") != null ? "google" : "github";
 
-        // 4. 해당 사용자로 JWT 토큰을 생성한다.
-        // (JwtTokenProvider의 토큰 생성 메서드명은 실제 코드에 맞게 수정)
+                    User newUser = User.builder()
+                            .email(email)
+                            .nickname(name != null ? name : email.split("@")[0])
+                            .password(null)
+                            .provider(provider)
+                            .role("ROLE_USER")
+                            .build();
+                    return userRepository.saveAndFlush(newUser);
+                });
+
         String token = jwtTokenProvider.createToken(user);
-        log.info("JWT 토큰이 발급되었습니다. 토큰: {}", token);
+        log.info("JWT 토큰 발급 완료");
 
-        // 5. 프론트엔드(React)로 리다이렉트할 URL을 생성한다.
-        //    토큰을 쿼리 파라미터로 함께 보낸다.
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/oauth-redirect") // ◀◀◀ 프론트엔드 주소
+        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/oauth-redirect")
                 .queryParam("token", token)
                 .build()
                 .encode(StandardCharsets.UTF_8)
                 .toUriString();
 
-        // 6. 생성된 URL로 리다이렉트시킨다.
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

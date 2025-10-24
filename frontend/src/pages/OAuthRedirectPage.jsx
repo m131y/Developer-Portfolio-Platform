@@ -1,9 +1,6 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
-/**
- * 2. 백엔드가 리다이렉트할 페이지 (경로: /oauth-redirect)
- */
 const OAuthRedirectPage = () => {
   // URL의 쿼리 파라미터( ?token=... )를 읽어옴
   const [searchParams] = useSearchParams();
@@ -18,8 +15,8 @@ const OAuthRedirectPage = () => {
       // 토큰을 로컬 스토리지에 저장 (브라우저에 저장)
       localStorage.setItem("jwt_token", token);
 
-      // (선택) 토큰 저장 후 메인 페이지로 이동시킬 수 있음
-      // window.location.href = "/";
+      // 토큰 저장 후 메인 페이지로 이동
+      window.location.href = "/";
     }
   }, [token]); // token 값이 변경될 때만 실행
 
