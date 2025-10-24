@@ -61,7 +61,7 @@ public class User implements UserDetails {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
+//
 //    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 //    @Builder.Default
 //    private Set<Post> posts = new HashSet<>();
