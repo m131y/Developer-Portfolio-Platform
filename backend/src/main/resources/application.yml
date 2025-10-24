@@ -60,11 +60,11 @@ jwt:
 cloud:
   aws:
     credentials:
-      access-key: [YOUR_ACCESS_KEY]   # AWS IAM Access Key
-      secret-key: [YOUR_SECRET_KEY]   # AWS IAM Secret Key
+      access-key: ${AWS_ACCESS_KEY}  # AWS IAM Access Key
+      secret-key: ${AWS_SECRET_KEY}   # AWS IAM Secret Key
     region:
       static: ap-northeast-2           # 버킷 생성 리전 (예: 서울)
     stack:
       auto: false
     s3:
-      bucket: [YOUR_S3_BUCKET_NAME] # 실제 S3 버킷 이름
+      bucket: ${AWS_S3_BUCKET_NAME} # 실제 S3 버킷 이름

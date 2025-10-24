@@ -2,7 +2,7 @@ package com.example.backend.message.repository;
 
 import com.example.backend.message.entity.MessageRoom;
 import com.example.backend.message.entity.RoomParticipant;
-import com.example.backend.message.entity.User;
+import com.example.backend.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
