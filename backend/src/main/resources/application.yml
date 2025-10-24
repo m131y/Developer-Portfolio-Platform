@@ -1,43 +1,33 @@
 spring:
-  # ----------------------------------------------------
-  # 1. H2 데이터소스 연결 설정
-  # ----------------------------------------------------
   datasource:
-    # URL: 파일 기반 H2 설정
-    #   - ./db/myproject.mv.db 파일로 저장되어 데이터가 유지됩니다.
-    url: jdbc:h2:file:./db/myproject
-    username: sa # H2 기본 사용자명
-    password: # 비밀번호 없음
+    url: jdbc:h2:file:./data/mydb
     driver-class-name: org.h2.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
-  # ----------------------------------------------------
-  # 2. JPA/Hibernate 설정
-  # ----------------------------------------------------
-  jpa:
-    hibernate:
-      # 개발 단계에서는 엔티티 변경 시 테이블 구조를 자동 업데이트합니다.
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        # DB 방언을 H2Dialect로 지정 (매우 중요)
-        dialect: org.hibernate.dialect.H2Dialect
-        # SQL 쿼리를 콘솔에 예쁘게 포맷하여 출력
-        format_sql: true
-        show_sql: true
-
-  # ----------------------------------------------------
-  # 3. H2 Console 설정 (브라우저에서 DB 확인용)
-  # ----------------------------------------------------
   h2:
     console:
-      # H2 콘솔 활성화
-      enabled: true
-      # 콘솔 접속 경로 (http://localhost:8080/h2-console 로 접속)
-      path: /h2-console
+      enabled: true  # ⭐️ H2 웹 콘솔 활성화
+      path: /h2-console # ⭐️ 콘솔에 접근할 URL 경로 설정
 
-  # ==================================
-  # 4. OAuth 2.0 소셜 로그인 설정 (신규 추가)
-  # ==================================
+  data:
+    redis:
+      host: ${REDIS_HOST}  # Redis 설치한 IP (로컬이면 보통 127.0.0.1)
+      port: ${REDIS_PORT}      # Redis 기본 포트
+      # password: yourpassword # 비밀번호 설정했으면 추가
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        id:
+          new_generator_mappings: false
+
   security:
     oauth2:
       client:
@@ -49,22 +39,35 @@ spring:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
 
-# ==================================
-# 5. JWT 설정 (기존 설정)
-# ==================================
 jwt:
-  secret: ${jwt_secret}
-  expiration-ms: 3600000 # 1시간 (밀리초 단위)
+  secret: ${JWT_SECRET}
+  expiration-ms: 86400000
+  refresh-expiration: 604800000
 
-# ▼▼▼ AWS S3 설정을 추가합니다 ▼▼▼
 cloud:
   aws:
     credentials:
-      access-key: ${AWS_ACCESS_KEY}  # AWS IAM Access Key
-      secret-key: ${AWS_SECRET_KEY}   # AWS IAM Secret Key
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
     region:
-      static: ap-northeast-2           # 버킷 생성 리전 (예: 서울)
+      static: ${AWS_REGION}
     stack:
       auto: false
     s3:
-      bucket: ${AWS_S3_BUCKET_NAME} # 실제 S3 버킷 이름
+      bucket: ${AWS_S3_BUCKET_NAME}
+
+server:
+  port: 8080
+
+frontend:
+  url: ${FRONTEND_URL}
+
+
+logging:
+  level:
+    # ⭐️ 스키마 생성 관련 로그를 반드시 확인하기 위해 INFO 레벨로 설정
+    org.hibernate.tool.hbm2ddl: INFO
+    # (선택) Hibernate 전체 동작을 자세히 보려면 DEBUG로 설정
+    # org.hibernate: DEBUG
+    # (선택) SQL 파라미터까지 확인하려면 TRACE로 설정 (이전 답변 참고)
+    # org.hibernate.orm.jdbc.bind: TRACE
