@@ -1,5 +1,6 @@
 package com.example.backend.message.entity;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

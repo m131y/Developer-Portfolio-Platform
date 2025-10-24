@@ -5,7 +5,6 @@ import com.example.backend.message.entity.*;
 import com.example.backend.message.repository.MessageRepository;
 import com.example.backend.message.repository.MessageRoomRepository;
 import com.example.backend.message.repository.RoomParticipantRepository;
-import com.example.backend.message.repository.MessageUserRepository;
 import com.example.backend.redis.RedisPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +32,7 @@ public class ChatService {
     private final MessageRoomRepository messageRoomRepository;
     private final MessageRepository messageRepository;
     private final RoomParticipantRepository roomParticipantRepository;
-    private final MessageUserRepository messageUserRepository;
+//    private final UserRepository userRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Transactional
@@ -42,18 +41,17 @@ public class ChatService {
         MessageRoom room = messageRoomRepository.findById(Long.valueOf(messageDto.getRoomId()))
                 .orElseThrow(()->new RuntimeException("해당 대화방을 찾을 수 없습니다."));
 
-        User sendUser = messageUserRepository.findByUsername(messageDto.getSender())
+        User sendUser = userRepository.findByUsername(messageDto.getSender())
                 .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
-        // 2. 메시지 타입에 따른 처리
         if (MessageType.ENTER.equals(messageDto.getType())) {
             log.info("ENTER" + messageDto.getMessage());
-//             2-2. 채팅방 조회 또는 생성
-//             💡 채팅방 ID(roomId)를 이용해 기존 방을 찾는다
-            simpMessagingTemplate.convertAndSend("/sub/chat/room/" + messageDto.getRoomId(), messageDto);
+
+            simpMessagingTemplate.convertAndSend("/topic/chat/room/" + messageDto.getRoomId(), messageDto);
+
         } else if (MessageType.MESSAGE.equals(messageDto.getType())) {
             log.info("MESSAGE" + messageDto.getMessage());
-            simpMessagingTemplate.convertAndSend("/sub/chat/room/" + messageDto.getRoomId(), messageDto);
+            simpMessagingTemplate.convertAndSend("/topic/chat/room/" + messageDto.getRoomId(), messageDto);
 
             Message message = Message.builder()
                     .type(messageDto.getType())
@@ -67,26 +65,25 @@ public class ChatService {
         }
     }
 
-//    public Page<MessageRoomDto> getAllMessageRooms(Pageable pageable) {
-//        User currentUser = authenticationService.getCurrentUser();
-//
-//        Page<MessageRoom> rooms = messageRoomRepository.findActiveMessageRoomsByUserId(currentUser.getId(), pageable);
-//        return rooms.map(room -> MessageRoomDto.fromEntity(room));
-//    }
+    public Page<MessageRoomDto> getAllMessageRooms(Pageable pageable) {
+        User currentUser = authenticationService.getCurrentUser();
 
-    public Page<MessageRoomDto> getAllMessageRooms(Pageable pageable, Long userId) {
-        User user = messageUserRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
-        Page<MessageRoom> rooms = messageRoomRepository.findActiveMessageRoomsByUserId(user.getId(), pageable);
+        Page<MessageRoom> rooms = messageRoomRepository.findActiveMessageRoomsByUserId(currentUser.getId(), pageable);
         return rooms.map(room -> MessageRoomDto.fromEntity(room));
     }
 
-    @Transactional
-    public MessageRoomDto createMessageRoom(CreateRoomRequest request, Long creatorId) {
+    public List<MessageDto> getMessagesByRoom(Long roomId) {
+        MessageRoom room = messageRoomRepository.findById(roomId)
+                .orElseThrow(()->new RuntimeException("해당 대화방을 찾을 수 없습니다."));
 
-        User creator = messageUserRepository.findById(creatorId)
-                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        return messageRepository.findByMessageRoom(room).stream().map(dto -> MessageDto.fromEntity(dto)).toList();
+    }
+
+    @Transactional
+    public MessageRoomDto createMessageRoom(CreateRoomRequest request) {
+
+        User creator = authenticationService.getCurrentUser();
 
         MessageRoom newRoom = MessageRoom.builder()
                 .roomName(request.getRoomName())
@@ -101,7 +98,7 @@ public class ChatService {
         participantNames.add(creator.getUsername());
 
         // 4. 모든 참가자 User 엔티티 조회
-        List<User> participants = messageUserRepository.findAllByUsernameIn(participantNames);
+        List<User> participants = userRepository.findAllByUsernameIn(participantNames);
         // ^ userRepository가 Iterable<Long>을 받는 findAllById를 가지고 있어야 합니다.
 
         if (participants.size() != participantNames.size()) {
@@ -124,48 +121,6 @@ public class ChatService {
         // 6. 결과 반환
         return MessageRoomDto.fromEntity(savedRoom);
     }
-
-//    @Transactional
-//    public MessageRoomDto createMessageRoom(CreateRoomRequest request) {
-//
-//        User creator = authenticationService.getCurrentUser();
-//
-//        MessageRoom newRoom = MessageRoom.builder()
-//                .roomName(request.getRoomName())
-//                .creator(creator)
-//                .build();
-//
-//        // 방 생성, 저장
-//        MessageRoom savedRoom = messageRoomRepository.save(newRoom);
-//
-//        // 3. 참여자 ID 목록 준비 (생성자 ID + 초대된 사용자 ID 목록)
-//        Set<String> participantNames = new HashSet<>(request.getInviteeNames());
-//        participantNames.add(creator.getUsername());
-//
-//        // 4. 모든 참가자 User 엔티티 조회
-//        List<User> participants = userRepository.findAllByUsernameIn(participantNames);
-//        // ^ userRepository가 Iterable<Long>을 받는 findAllById를 가지고 있어야 합니다.
-//
-//        if (participants.size() != participantNames.size()) {
-//            // 초대 ID 중 유효하지 않은 ID가 있을 경우 처리
-//            throw new IllegalArgumentException("유효하지 않은 사용자 ID가 포함되어 있습니다.");
-//        }
-//
-//        // 5. RoomParticipant 엔티티 생성 및 저장
-//        List<RoomParticipant> roomParticipants = participants.stream()
-//                .map(user -> RoomParticipant.builder()
-//                        .messageRoom(savedRoom)
-//                        .user(user)
-//                        .joinedAt(LocalDateTime.now())
-//                        .leftAt(null)
-//                        .build())
-//                .collect(Collectors.toList());
-//
-//        roomParticipantRepository.saveAll(roomParticipants); // 모든 참가자 저장
-//
-//        // 6. 결과 반환
-//        return MessageRoomDto.fromEntity(savedRoom);
-//    }
 
     // 참가자 목록, messageRoomDto 을 같이 조회해서 보내기
     public RoomInfoResponse getRoomInfo(Long roomId) {
@@ -195,8 +150,9 @@ public class ChatService {
     }
 
     public RoomParticipantDto joinMessageRoom(Long roomId, Long userId) {
+        User currentUser = authenticationService.getCurrentUser();
 
-        User user = messageUserRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
         MessageRoom messageRoom = messageRoomRepository.findById(roomId)
@@ -246,34 +202,18 @@ public class ChatService {
         }
     }
 
-//    public void leftMessageRoom(Long roomId) {
-//        User currentUser = authenticationService.getCurrentUser();
-//        MessageRoom messageRoom = messageRoomRepository.findById(roomId)
-//                .orElseThrow(() -> new RuntimeException("해당 대화방을 찾을 수 없습니다."));
-//
-//        RoomParticipant participant = roomParticipantRepository.findByMessageRoomAndUser(messageRoom, currentUser)
-//                .orElseThrow(() -> new RuntimeException("해당 대화방의 참가자를 찾을 수 없습니다."));
-//
-//        participant.setLeftAt(LocalDateTime.now());
-//
-//        roomParticipantRepository.save(participant);
-//    }
-
-    public void leftMessageRoom(Long roomId, Long userId) {
-        User user = messageUserRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-
+    public void leftMessageRoom(Long roomId) {
+        User currentUser = authenticationService.getCurrentUser();
         MessageRoom messageRoom = messageRoomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("해당 대화방을 찾을 수 없습니다."));
 
-        RoomParticipant participant = roomParticipantRepository.findByMessageRoomAndUser(messageRoom, user)
+        RoomParticipant participant = roomParticipantRepository.findByMessageRoomAndUser(messageRoom, currentUser)
                 .orElseThrow(() -> new RuntimeException("해당 대화방의 참가자를 찾을 수 없습니다."));
 
         participant.setLeftAt(LocalDateTime.now());
 
         roomParticipantRepository.save(participant);
     }
-
 
     public void deleteMessageRoom(Long roomId) {
         MessageRoom messageRoom = messageRoomRepository.findById(roomId)
@@ -285,7 +225,7 @@ public class ChatService {
     }
 
     public boolean isParticipant(Long roomId, String username) {
-        User user = messageUserRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
         MessageRoom messageRoom = messageRoomRepository.findById(roomId)
