@@ -53,5 +53,5 @@ spring:
 # 5. JWT 설정 (기존 설정)
 # ==================================
 jwt:
-  secret: ${jwt_secret}
+  secret: ${JWT_SECRET}
   expiration-ms: 3600000 # 1시간 (밀리초 단위)
