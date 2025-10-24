@@ -3,7 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/home";
 import Login from "./pages/login";
 import OAuthRedirectPage from "./pages/OAuthRedirectPage";
-import ProjectDetails from "./pages/projectDetail";
+import ProjectsList from "./pages/projectsList";
+import CreateProjects from "./pages/createProjects";
 
 /**
  * URL 경로에 따라 어떤 페이지를 보여줄지 결정 (라우터 설정)
@@ -16,7 +17,8 @@ const App = () => {
 
       <Route path="/login" element={<Login />} />
 
-      <Route path="/project" element={<ProjectDetails />} />
+      <Route path="/projects" element={<ProjectsList />} />
+      <Route path="/projects/new" element={<CreateProjects />} />
 
       {/* "/oauth-redirect" 경로 접속 시 <OAuthRedirectPage>를 보여줌 */}
       <Route path="/oauth-redirect" element={<OAuthRedirectPage />} />

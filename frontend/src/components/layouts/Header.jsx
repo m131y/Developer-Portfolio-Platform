@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -13,21 +13,31 @@ const Header = () => {
 
   return (
     <header className="navigation w-full max-w-[1440px] mx-auto h-[124px] bg-white flex items-center justify-between px-[60px] absolute top-0">
-      <button onClick={goToHomePage}>
-        <div className="dev-foilio font-presentation text-black text-[24px] font-bold leading-[150%]">
-          DevFoilio
-        </div>
-      </button>
+      <Link
+        to="/"
+        className="dev-foilio font-presentation text-black text-[24px] font-bold leading-[150%]"
+      >
+        DevFoilio
+      </Link>
       <nav className="items flex space-x-9 items-center h-[52px]">
-        <div className="div font-presentation text-black text-[15px] font-medium leading-[150%] cursor-pointer hover:text-gray-600">
+        <Link
+          to="/projects"
+          className="div font-presentation text-black text-[15px] font-medium leading-[150%] cursor-pointer hover:text-gray-600"
+        >
           프로젝트
-        </div>
-        <div className="div font-presentation text-black text-[15px] font-medium leading-[150%] cursor-pointer hover:text-gray-600">
+        </Link>
+        <Link
+          to="/collaboration"
+          className="div font-presentation text-black text-[15px] font-medium leading-[150%] cursor-pointer hover:text-gray-600"
+        >
           협업
-        </div>
-        <div className="div font-presentation text-black text-[15px] font-medium leading-[150%] cursor-pointer hover:text-gray-600">
+        </Link>
+        <Link
+          to="/mentoring"
+          className="div font-presentation text-black text-[15px] font-medium leading-[150%] cursor-pointer hover:text-gray-600"
+        >
           멘토링
-        </div>
+        </Link>
 
         <button
           onClick={goToLoginPage}

@@ -3,7 +3,7 @@ import Header from "../components/layouts/Header";
 import Layout from "../components/layouts/MainLayout";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchWithAuth } from "../services/api";
+import { fetchWithAuth } from "../services/auth";
 
 const ProjectsList = () => {
   const [projects, setProjects] = useState([]);
