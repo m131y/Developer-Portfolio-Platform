@@ -19,8 +19,8 @@ const ProjectsList = () => {
         const data = await res.json();
         setProjects(data);
       } catch (error) {
-        console.error(err);
-        setError(err.message);
+        console.error(error);
+        setError(error.message);
       }
     }
     load();

@@ -37,7 +37,7 @@ public class MessageRoom {
     // 💡 메시지 목록 (Message 엔티티의 messageRoom 필드를 매핑)
     @OneToMany(mappedBy = "messageRoom", fetch = FetchType.LAZY)
     @JsonIgnore // <--- 이 필드를 JSON 변환에서 제외
-    private Set<com.example.backend.entity.Message> messages;
+    private Set<com.example.backend.message.entity.Message> messages;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;

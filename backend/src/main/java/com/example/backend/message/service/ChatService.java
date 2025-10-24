@@ -6,6 +6,7 @@ import com.example.backend.message.repository.MessageRepository;
 import com.example.backend.message.repository.MessageRoomRepository;
 import com.example.backend.message.repository.RoomParticipantRepository;
 import com.example.backend.redis.RedisPublisher;
+import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,7 +33,7 @@ public class ChatService {
     private final MessageRoomRepository messageRoomRepository;
     private final MessageRepository messageRepository;
     private final RoomParticipantRepository roomParticipantRepository;
-//    private final UserRepository userRepository;
+    private final UserRepository userRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Transactional
@@ -41,7 +42,7 @@ public class ChatService {
         MessageRoom room = messageRoomRepository.findById(Long.valueOf(messageDto.getRoomId()))
                 .orElseThrow(()->new RuntimeException("해당 대화방을 찾을 수 없습니다."));
 
-        User sendUser = userRepository.findByUsername(messageDto.getSender())
+        User sendUser = userRepository.findByNickname(messageDto.getSender())
                 .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
         if (MessageType.ENTER.equals(messageDto.getType())) {
