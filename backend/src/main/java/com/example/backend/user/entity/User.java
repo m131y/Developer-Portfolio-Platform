@@ -1,9 +1,15 @@
 package com.example.backend.user.entity;
 
+import com.example.backend.message.entity.Message;
+import com.example.backend.message.entity.MessageRoom;
+import com.example.backend.message.entity.RoomParticipant;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -49,6 +55,25 @@ public class User {
     // 사용자-기술 스택 매핑
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserTechStack> userTechStacks = new ArrayList<>();
+
+    /**
+     *  메세지 관련 연관관계 설정
+     */
+
+    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<Message> sentMessages = new HashSet<>();
+
+    @OneToMany(mappedBy = "creator", fetch = FetchType.LAZY)
+    @Builder.Default
+    @JsonIgnore
+    private Set<MessageRoom> createdRooms = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @Builder.Default
+    @JsonIgnore
+    private Set<RoomParticipant> roomParticipants = new HashSet<>();
+
 
     /**
      * 소셜 링크를 추가합니다. (양방향 연관관계 설정)
