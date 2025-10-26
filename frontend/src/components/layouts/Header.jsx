@@ -17,6 +17,17 @@ const Header = () => {
     setUser(StorageService.getUser());
   }, []);
 
+  useEffect(() => {
+    //다른 탭/리다이렉트 저장소 변화 반영
+    const onStorage = () => {
+      setIsLoggedIn(Boolean(StorageService.getAccessToken()));
+      setUser(StorageService.getUser());
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  
   const goToLoginPage = () => {
     navigate("/login");
   };
@@ -57,9 +68,11 @@ const Header = () => {
         </Link>
         {isLoggedIn ? (
           <div className="flex items-center space-x-2">
-            <span className="font-presentation text-black text-[15px]">
-              {user?.nickname || user?.name || user?.email || "내 정보"}
-            </span>
+            <Link to="/me" title="내 정보 보기">
+              <span className="font-presentation text-black text-[15px]">
+                {user?.nickname || user?.name || user?.email || "내 정보"}
+              </span>
+            </Link>
             <button
               onClick={handleLogout}
               className="bg-black text-white rounded-md py-2 px-3"

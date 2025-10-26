@@ -7,14 +7,14 @@ const messageRoomService = {
     return response.data;
   },
 
-  getAllMessageRooms: async (currentPage = 0, pageSize = 10) => {
-    const page = Number.isInteger(currentPage) ? currentPage : 0;
-    const size = Number.isInteger(pageSize) ? pageSize : 10;
-
+  getAllMessageRooms: async (page = 0, size = 10) => {
     const response = await api.get("/api/messages/rooms", {
       params: { page, size },
     });
-    return response.data.content;
+    // return response.data.content;
+    return Array.isArray(response?.data?.content)
+      ? response.data.content
+      : response.data;
   },
 
   deleteMessageRooms: async (roomId) => {
