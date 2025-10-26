@@ -1,5 +1,7 @@
+import axios from "axios";
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import StorageService from "../services/storage";
 
 const OAuthRedirectPage = () => {
   // URL의 쿼리 파라미터( ?token=... )를 읽어옴
@@ -9,15 +11,23 @@ const OAuthRedirectPage = () => {
   const token = searchParams.get("token");
 
   useEffect(() => {
-    if (token) {
-      console.log("백엔드에서 JWT 토큰을 받았습니다:", token);
+    async function handleOAuth() {
+      if (token) {
+        console.log("백엔드에서 JWT 토큰을 받았습니다:", token);
 
-      // 토큰을 로컬 스토리지에 저장 (브라우저에 저장)
-      localStorage.setItem("jwt_token", token);
-
-      // 토큰 저장 후 메인 페이지로 이동
-      window.location.href = "/";
+        // 토큰을 로컬 스토리지에 저장 (브라우저에 저장)
+        localStorage.setItem("jwt_token", token);
+        // 백엔드에서 현재 로그인한 사용자 정보 가져오기
+        const res = await axios.get("http://localhost:8080/api/user");
+        // 사용자 정보 저장
+        StorageService.setUser(res.data);
+        // 헤더 즉시 갱신
+        window.dispatchEvent(new Event("storage"));
+        // 토큰 저장 후 메인 페이지로 이동
+        window.location.href = "/";
+      }
     }
+    handleOAuth();
   }, [token]); // token 값이 변경될 때만 실행
 
   return (

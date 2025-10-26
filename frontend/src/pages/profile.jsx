@@ -28,7 +28,7 @@ const Profile = () => {
         return;
       }
       try {
-        const res = await axios.get("http://localhost:8080/api/user/profile");
+        const res = await axios.get("http://localhost:8080/api/user");
         setMe(res.data);
         setFormData({
           nickname: res.data?.nickname || "",
@@ -56,11 +56,11 @@ const Profile = () => {
         job: formData.job.trim(),
         bio: formData.bio.trim(),
       };
-      await axios.put("http://localhost:8080/api/user/profile", payload, {
+      await axios.put("http://localhost:8080/api/user", payload, {
         headers: { "Content-Type": "application/json" },
       });
       // check after saving
-      const res = await axios.get("http://localhost:8080/api/user/profile");
+      const res = await axios.get("http://localhost:8080/api/user");
       setMe(res.data);
       setEdit(false);
       // StorageService의 user도 업데이트

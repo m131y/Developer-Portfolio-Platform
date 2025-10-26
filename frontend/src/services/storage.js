@@ -5,7 +5,6 @@ const StorageKeys = {
 };
 
 const StorageService = {
-
   // getAccessToken: () => localStorage.getItem(StorageKeys.ACCESS_TOKEN),
   getAccessToken() {
     const token = localStorage.getItem(StorageKeys.ACCESS_TOKEN);
@@ -18,14 +17,17 @@ const StorageService = {
   // setAccessToken: (token) =>
   //   localStorage.setItem(StorageKeys.ACCESS_TOKEN, token),
   setAccessToken(token) {
-    if (!token) localStorage.removeItem(StorageKeys.ACCESS_TOKEN);
+    if (!token) {
+      localStorage.removeItem(StorageKeys.ACCESS_TOKEN);
+      return;
+    }
     localStorage.setItem(StorageKeys.ACCESS_TOKEN, token);
   },
 
   // getRefreshToken: () => localStorage.getItem(StorageKeys.REFRESH_TOKEN),
   getRefreshToken() {
     const token = localStorage.getItem(StorageKeys.REFRESH_TOKEN);
-    if(!token || token === "undefined" || token === "null"){
+    if (!token || token === "undefined" || token === "null") {
       localStorage.removeItem(StorageKeys.REFRESH_TOKEN);
       return null;
     }
@@ -34,16 +36,18 @@ const StorageService = {
   // setRefreshToken: (token) =>
   //   localStorage.setItem(StorageKeys.REFRESH_TOKEN, token),
   setRefreshToken(token) {
-    if (!token) localStorage.removeItem(StorageKeys.REFRESH_TOKEN);
-    else localStorage.setItem(StorageKeys.REFRESH_TOKEN, token);
+    if (!token) {
+      localStorage.removeItem(StorageKeys.REFRESH_TOKEN);
+      return;
+    }
+    localStorage.setItem(StorageKeys.REFRESH_TOKEN, token);
   },
 
   getUser: () => {
     // const user = localStorage.getItem(StorageKeys.USER);
     // return user ? JSON.parse(user) : null;
     const raw = localStorage.getItem(StorageKeys.USER);
-    if (!raw) return null;
-    if (raw === "undefined" || raw === "null") {
+    if (!raw || raw === "undefined" || raw === "null") {
       localStorage.removeItem(StorageKeys.USER);
       return null;
     }
@@ -62,7 +66,7 @@ const StorageService = {
   //   });
   // },
   setUser(userObj) {
-    if (userObj || userObj !== "object") {
+    if (!userObj || typeof userObj !== "object") {
       localStorage.removeItem(StorageKeys.USER);
       return;
     }
@@ -71,10 +75,9 @@ const StorageService = {
 
   clear() {
     localStorage.removeItem(StorageKeys.ACCESS_TOKEN);
-    localStorage.removeItem(StorageKeys.USER)
     localStorage.removeItem(StorageKeys.REFRESH_TOKEN);
-    localStorage.removeItem(StorageKeys.REFRESH_TOKEN);
-  }
+    localStorage.removeItem(StorageKeys.USER);
+  },
 };
 
 export default StorageService;
