@@ -1,13 +1,30 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import StorageService from "../../services/storage";
 
 const Header = () => {
   const navigate = useNavigate();
 
-  const goToHomePage = () => {
-    navigate("/");
-  };
+  //log in & user detail status
+  const [isLoggedIn, setIsLoggedIn] = useState(() =>
+    Boolean(StorageService.getAccessToken())
+  );
+  const [user, setUser] = useState(() => StorageService.getUser());
+
+  //when mount component, Synchronize with local storage
+  useEffect(() => {
+    setIsLoggedIn(Boolean(StorageService.getAccessToken()));
+    setUser(StorageService.getUser());
+  }, []);
 
   const goToLoginPage = () => {
+    navigate("/login");
+  };
+
+  const handleLogout = () => {
+    StorageService.clear();
+    setIsLoggedIn(false);
+    setUser(null);
     navigate("/login");
   };
 
@@ -38,15 +55,30 @@ const Header = () => {
         >
           멘토링
         </Link>
-
-        <button
-          onClick={goToLoginPage}
-          className="button cursor-pointer bg-black rounded-md py-[10.5px] px-[18px] flex items-center justify-center shadow-sm hover:opacity-90 transition"
-        >
-          <div className="div2 font-presentation text-white text-[12px] font-medium leading-[150%]">
-            로그인
+        {isLoggedIn ? (
+          <div className="flex items-center space-x-2">
+            <span className="font-presentation text-black text-[15px]">
+              {user?.nickname || user?.name || user?.email || "내 정보"}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="bg-black text-white rounded-md py-2 px-3"
+            >
+              <div className="div2 font-presentation text-white text-[12px] font-medium leading-[150%]">
+                로그아웃
+              </div>
+            </button>
           </div>
-        </button>
+        ) : (
+          <button
+            onClick={goToLoginPage}
+            className="button cursor-pointer bg-black rounded-md py-[10.5px] px-[18px] flex items-center justify-center shadow-sm hover:opacity-90 transition"
+          >
+            <div className="div2 font-presentation text-white text-[12px] font-medium leading-[150%]">
+              로그인
+            </div>
+          </button>
+        )}
       </nav>
     </header>
   );

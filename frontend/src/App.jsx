@@ -5,7 +5,7 @@ import Login from "./pages/login";
 import OAuthRedirectPage from "./pages/OAuthRedirectPage";
 import ProjectsList from "./pages/projectsList";
 import CreateProjects from "./pages/createProjects";
-import ProjectDetails from "./pages/projectDetail";
+import ProjectDetail from "./pages/projectDetail";
 import EditProject from "./pages/editProject";
 
 /**
@@ -21,7 +21,7 @@ const App = () => {
 
       <Route path="/projects" element={<ProjectsList />} />
       <Route path="/projects/new" element={<CreateProjects />} />
-      <Route path="/projects/:id" element={<ProjectDetails />} />
+      <Route path="/projects/:id" element={<ProjectDetail />} />
       <Route path="/projects/:id/edit" element={<EditProject />} />
 
       {/* "/oauth-redirect" 경로 접속 시 <OAuthRedirectPage>를 보여줌 */}
