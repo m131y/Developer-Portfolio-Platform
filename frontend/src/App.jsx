@@ -7,7 +7,7 @@ import ProjectsList from "./pages/projectsList";
 import CreateProjects from "./pages/createProjects";
 import ProjectDetail from "./pages/projectDetail";
 import EditProject from "./pages/editProject";
-import MyInfo from "./pages/myInfo";
+import Profile from "./pages/profile";
 
 /**
  * URL 경로에 따라 어떤 페이지를 보여줄지 결정 (라우터 설정)
@@ -19,7 +19,7 @@ const App = () => {
       <Route path="/" element={<Home />} />
 
       <Route path="/login" element={<Login />} />
-      <Route path="/me" element={<MyInfo />} />
+      <Route path="/user/profile" element={<Profile />} />
       <Route path="/projects" element={<ProjectsList />} />
       <Route path="/projects/new" element={<CreateProjects />} />
       <Route path="/projects/:id" element={<ProjectDetail />} />

@@ -27,7 +27,7 @@ const Header = () => {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  
+
   const goToLoginPage = () => {
     navigate("/login");
   };
@@ -68,7 +68,7 @@ const Header = () => {
         </Link>
         {isLoggedIn ? (
           <div className="flex items-center space-x-2">
-            <Link to="/me" title="내 정보 보기">
+            <Link to="/user/profile" title="내 정보 보기">
               <span className="font-presentation text-black text-[15px]">
                 {user?.nickname || user?.name || user?.email || "내 정보"}
               </span>
