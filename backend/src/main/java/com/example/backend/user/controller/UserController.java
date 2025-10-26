@@ -31,7 +31,7 @@ public class UserController {
         return ResponseEntity.ok(profile);
     }
 
-    /**
+    /**g
      * 프로필 수정 API
      * [PUT] /api/user/profile
      */

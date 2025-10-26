@@ -5,6 +5,7 @@ import Footer from "../components/layouts/Footer";
 import Header from "../components/layouts/Header";
 import Layout from "../components/layouts/MainLayout";
 import Button from "../components/ui/Button";
+import axios from "axios";
 
 const ProjectDetails = () => {
   const navigate = useNavigate();
@@ -16,54 +17,59 @@ const ProjectDetails = () => {
     // TODO: Replace with actual API call
     const fetchProject = async () => {
       try {
-        // const response = await fetch(`/api/projects/${id}`);
-        // const data = await response.json();
-        // setProject(data);
+        // // const response = await fetch(`/api/projects/${id}`);
+        // // const data = await response.json();
+        // // setProject(data);
 
-        // Mock data for now
-        setProject({
-          id: 1,
-          title: "Developer Portfolio Platform",
-          summary: "개발자를 위한 포트폴리오 공유 플랫폼",
-          descriptionMd:
-            "# 프로젝트 설명\n\n이 프로젝트는 개발자들이 자신의 포트폴리오를 공유하고 관리할 수 있는 플랫폼입니다.\n\n## 주요 기능\n- 프로젝트 등록 및 관리\n- 기술 스택 태그\n- 좋아요 및 조회수\n- 댓글 기능",
-          ownerId: 1,
-          ownerNickname: "Developer",
-          thumbnailUrl:
-            "https://cdn.inflearn.com/public/courses/333461/cover/95a8ae57-6e38-45c0-a74c-01aa094822c5/333461.jpg",
-          type: "웹 애플리케이션",
-          status: "진행중",
-          visibility: "public",
-          techStacks: [
-            { id: 1, name: "React", level: 5 },
-            { id: 2, name: "Spring Boot", level: 4 },
-            { id: 3, name: "PostgreSQL", level: 3 },
-          ],
-          media: [
-            {
-              id: 1,
-              type: "image",
-              url: "https://parkgang.github.io/assets/images/thumbnail-2bc257b12e64783dec57e6e1aa750093.png",
-              sortOrder: 1,
-            },
-            {
-              id: 2,
-              type: "image",
-              url: "https://raw.githubusercontent.com/eclipse-platform/eclipse.platform/master/platform/org.eclipse.platform/splash.png",
-              sortOrder: 2,
-            },
-          ],
-          likeCount: 42,
-          viewCount: 1234,
-          likedByMe: false,
-          repoUrl: "https://github.com/example/repo",
-          demoUrl: "https://example.com",
-          docUrl: "https://docs.example.com",
-          createdAt: "2024-01-15T10:30:00Z",
-          updatedAt: "2024-02-20T15:45:00Z",
-        });
+        // // Mock data for now
+        // setProject({
+        //   id: 1,
+        //   title: "Developer Portfolio Platform",
+        //   summary: "개발자를 위한 포트폴리오 공유 플랫폼",
+        //   descriptionMd:
+        //     "# 프로젝트 설명\n\n이 프로젝트는 개발자들이 자신의 포트폴리오를 공유하고 관리할 수 있는 플랫폼입니다.\n\n## 주요 기능\n- 프로젝트 등록 및 관리\n- 기술 스택 태그\n- 좋아요 및 조회수\n- 댓글 기능",
+        //   ownerId: 1,
+        //   ownerNickname: "Developer",
+        //   thumbnailUrl:
+        //     "https://cdn.inflearn.com/public/courses/333461/cover/95a8ae57-6e38-45c0-a74c-01aa094822c5/333461.jpg",
+        //   type: "웹 애플리케이션",
+        //   status: "진행중",
+        //   visibility: "public",
+        //   techStacks: [
+        //     { id: 1, name: "React", level: 5 },
+        //     { id: 2, name: "Spring Boot", level: 4 },
+        //     { id: 3, name: "PostgreSQL", level: 3 },
+        //   ],
+        //   media: [
+        //     {
+        //       id: 1,
+        //       type: "image",
+        //       url: "https://parkgang.github.io/assets/images/thumbnail-2bc257b12e64783dec57e6e1aa750093.png",
+        //       sortOrder: 1,
+        //     },
+        //     {
+        //       id: 2,
+        //       type: "image",
+        //       url: "https://raw.githubusercontent.com/eclipse-platform/eclipse.platform/master/platform/org.eclipse.platform/splash.png",
+        //       sortOrder: 2,
+        //     },
+        //   ],
+        //   likeCount: 42,
+        //   viewCount: 1234,
+        //   likedByMe: false,
+        //   repoUrl: "https://github.com/example/repo",
+        //   demoUrl: "https://example.com",
+        //   docUrl: "https://docs.example.com",
+        //   createdAt: "2024-01-15T10:30:00Z",
+        //   updatedAt: "2024-02-20T15:45:00Z",
+        // });
+        const response = await axios.get(
+          "http://localhost:8080/api/projects/${id}"
+        );
+        setProject(response.data);
       } catch (error) {
         console.error("Failed to fetch project:", error);
+        setProject(null);
       } finally {
         setLoading(false);
       }
