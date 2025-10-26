@@ -7,7 +7,10 @@ const messageRoomService = {
     return response.data;
   },
 
-  getAllMessageRooms: async (page = 0, size = 10) => {
+  getAllMessageRooms: async (currentPage = 0, pageSize = 10) => {
+    const page = Number.isInteger(currentPage) ? currentPage : 0;
+    const size = Number.isInteger(pageSize) ? pageSize : 10;
+
     const response = await api.get("/api/messages/rooms", {
       params: { page, size },
     });

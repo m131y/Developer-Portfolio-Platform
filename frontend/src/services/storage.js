@@ -7,15 +7,22 @@ const StorageKeys = {
 const StorageService = {
   // getAccessToken: () => localStorage.getItem(StorageKeys.ACCESS_TOKEN),
   getAccessToken() {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem(StorageKeys.ACCESS_TOKEN);
     if (!token || token === "undefined" || token === "null") {
-      localStorage.removeItem("accessToken");
+      localStorage.removeItem(StorageKeys.ACCESS_TOKEN);
       return null;
     }
     return token;
   },
-  setAccessToken: (token) =>
-    localStorage.setItem(StorageKeys.ACCESS_TOKEN, token),
+  // setAccessToken: (token) =>
+  //   localStorage.setItem(StorageKeys.ACCESS_TOKEN, token),
+  setAccessToken(token) {
+    if (!token) {
+      localStorage.removeItem(StorageKeys.ACCESS_TOKEN);
+      return;
+    }
+    localStorage.setItem(StorageKeys.ACCESS_TOKEN, token);
+  },
   getRefreshToken: () => localStorage.getItem(StorageKeys.REFRESH_TOKEN),
   setRefreshToken: (token) =>
     localStorage.setItem(StorageKeys.REFRESH_TOKEN, token),
@@ -49,6 +56,11 @@ const StorageService = {
     }
     localStorage.setItem(StorageKeys.USER, JSON.stringify(userObj));
   },
+
+  clear() {
+    localStorage.removeItem(StorageKeys.ACCESS_TOKEN);
+    localStorage.removeItem(StorageKeys.USER);
+  }
 };
 
 export default StorageService;
