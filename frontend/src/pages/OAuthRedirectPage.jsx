@@ -18,7 +18,7 @@ const OAuthRedirectPage = () => {
         // 토큰을 로컬 스토리지에 저장 (브라우저에 저장)
         localStorage.setItem("jwt_token", token);
         // 백엔드에서 현재 로그인한 사용자 정보 가져오기
-        const res = await axios.get("http://localhost:8080/api/user");
+        const res = await axios.get("http://localhost:8080/api/auth");
         // 사용자 정보 저장
         StorageService.setUser(res.data);
         // 헤더 즉시 갱신

@@ -64,7 +64,7 @@ const ProjectDetails = () => {
         //   updatedAt: "2024-02-20T15:45:00Z",
         // });
         const response = await axios.get(
-          "http://localhost:8080/api/projects/${id}"
+          `http://localhost:8080/api/projects/${id}`
         );
         setProject(response.data);
       } catch (error) {
