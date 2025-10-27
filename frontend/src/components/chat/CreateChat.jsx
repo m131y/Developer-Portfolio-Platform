@@ -1,13 +1,12 @@
 import { FiX } from "react-icons/fi";
 import { useState } from "react";
-import Input from "../ui/Input";
 import useMessageRoomStore from "../../store/messageRoomStore";
+import Input from "../ui/Input";
 
 const CreateChat = ({ onClose }) => {
   const { messageRooms, createMessageRoom, loading, error } =
     useMessageRoomStore();
 
-  // const { user } = useAuthStore();
   const user = {
     id: 1,
     username: "user1",

@@ -2,7 +2,11 @@ package com.example.backend.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -45,5 +49,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 클라이언트에서 들어오는 메시지 채널에 Interceptor 등록
 //         registration.interceptors(authChannelInterceptor);
 //         registration.interceptors(stompInterceptor);
+    }
+
+    @Bean
+    public SimpMessagingTemplate simpMessagingTemplate(@Qualifier("brokerChannel") MessageChannel brokerChannel) {
+        SimpMessagingTemplate template = new SimpMessagingTemplate(brokerChannel);
+        log.info("✅ SimpMessagingTemplate이 STOMP 브로커 채널을 바라보도록 수동 등록 완료.");
+        return template;
     }
 }
