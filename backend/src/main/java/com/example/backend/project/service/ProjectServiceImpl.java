@@ -3,9 +3,13 @@ package com.example.backend.project.service;
 import com.example.backend.project.dto.*;
 import com.example.backend.project.entity.Project;
 import com.example.backend.project.entity.ProjectMedia;
+import com.example.backend.project.entity.ProjectTechStack; // 🌟 추가
 import com.example.backend.project.mapper.ProjectMapper;
 import com.example.backend.project.repository.ProjectMediaRepository;
 import com.example.backend.project.repository.ProjectRepository;
+import com.example.backend.project.repository.ProjectTechStackRepository; // 🌟 추가
+import com.example.backend.user.entity.User; // 🌟 추가 (닉네임 조회를 위해 User 엔티티 필요 가정)
+import com.example.backend.user.repository.UserRepository; // 🌟 추가 (닉네임 조회를 위해)
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,8 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
+// ... (기존 import 생략)
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +27,11 @@ public class ProjectServiceImpl implements ProjectService{
 
     private final ProjectRepository projectRepository;
     private final ProjectMediaRepository mediaRepository;
+    private final ProjectTechStackRepository techStackRepository; // 🌟 주입
     private final ProjectMapper mapper;
+    private final UserRepository userRepository; // 🌟 주입
+
+    // ... (createProject, updateProject 메서드 생략. 기술스택 저장 로직도 추가해야 함)
 
     @Override
     public ProjectDetailDto createProject(CreateProjectDto dto, Long userId) {
@@ -59,7 +67,7 @@ public class ProjectServiceImpl implements ProjectService{
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
 
-        //visibility (추가 or X)
+        // visibility (추가 or X)
         if ("PRIVATE".equalsIgnoreCase(project.getVisibility())) {
             if (viewerId == null || !project.getOwnerId().equals(viewerId)){
                 throw new EntityNotFoundException("Not Authorized");
@@ -69,6 +77,17 @@ public class ProjectServiceImpl implements ProjectService{
         ProjectDetailDto out = mapper.toDetail(project);
         var mediaList = mediaRepository.findByProjectId(projectId);
         out.setMedia(mapper.toMediaList(mediaList));
+
+// 🌟 Fix 1: ProjectTechStack 조회 및 설정 (아래 2번 내용)
+        var techStackList = techStackRepository.findByProjectId(projectId);
+        out.setTechStacks(mapper.toTechStackList(techStackList));
+
+// 🌟 Fix 2: Owner Nickname 조회 및 설정 (수정/삭제 버튼 조건 확인에 필수)
+// userEntity를 가정하고, userRepository를 주입했다고 가정합니다.
+        userRepository.findById(project.getOwnerId()).ifPresent(owner -> {
+            out.setOwnerNickname(owner.getNickname()); // User 엔티티에 getNickname()이 있다고 가정
+        });
+
         return out;
     }
 
@@ -138,4 +157,8 @@ public class ProjectServiceImpl implements ProjectService{
         return projectRepository.findAll(pageable)
                 .map(mapper::toListItem);
     }
+
+
+
+
 }

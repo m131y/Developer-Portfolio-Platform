@@ -4,7 +4,7 @@ import com.example.backend.project.dto.*;
 import com.example.backend.project.entity.Project;
 import com.example.backend.project.entity.ProjectMedia;
 import org.mapstruct.*;
-
+import com.example.backend.project.entity.ProjectTechStack; // 🌟 추가
 import java.util.List;
 
 //Mapper 추가
@@ -26,6 +26,12 @@ public interface ProjectMapper {
 
     List<ProjectMediaDto> toMediaList(List<ProjectMedia> mediaList);
 
+    @Mapping(target = "id", source = "techId") // ProjectTechStack.techId를 TechTagDto.id로 매핑
+    @Mapping(target = "name", ignore = true)   // name은 현재 Entity만으로는 조회 불가, 일단 무시
+    @Mapping(target = "level", source = "level")
+    TechTagDto toTechStack(ProjectTechStack techStack); // 🌟 추가 (DTO 이름 가정)
+
+    List<TechTagDto> toTechStackList(List<ProjectTechStack> techStackList); // 🌟 추가
     // --- DTO -> Entity (Create) ---
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)

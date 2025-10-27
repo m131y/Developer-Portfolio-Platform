@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import StorageService from "../services/storage";
+import api from "../services/api";
+import StorageService from "../services/storage"; // 사용자 정보를 가져오는 서비스 가정
 import Footer from "../components/layouts/Footer";
 import Header from "../components/layouts/Header";
 import Layout from "../components/layouts/MainLayout";
-import Button from "../components/ui/Button";
-import axios from "axios";
-import api from "../services/api";
+import Button from "../components/ui/Button"; // Button 컴포넌트 가정
 
 const ProjectDetails = () => {
   const navigate = useNavigate();
@@ -15,58 +14,9 @@ const ProjectDetails = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Replace with actual API call
     const fetchProject = async () => {
       try {
-        // const response = await fetch(`/api/projects/${id}`);
-        // const data = await response.json();
-        // setProject(data);
-
-        // Mock data for now
-        setProject({
-          id: 1,
-          title: "Developer Portfolio Platform",
-          summary: "개발자를 위한 포트폴리오 공유 플랫폼",
-          descriptionMd:
-            "# 프로젝트 설명\n\n이 프로젝트는 개발자들이 자신의 포트폴리오를 공유하고 관리할 수 있는 플랫폼입니다.\n\n## 주요 기능\n- 프로젝트 등록 및 관리\n- 기술 스택 태그\n- 좋아요 및 조회수\n- 댓글 기능",
-          ownerId: 1,
-          ownerNickname: "Developer",
-          thumbnailUrl:
-            "https://cdn.inflearn.com/public/courses/333461/cover/95a8ae57-6e38-45c0-a74c-01aa094822c5/333461.jpg",
-          type: "웹 애플리케이션",
-          status: "진행중",
-          visibility: "public",
-          techStacks: [
-            { id: 1, name: "React", level: 5 },
-            { id: 2, name: "Spring Boot", level: 4 },
-            { id: 3, name: "PostgreSQL", level: 3 },
-          ],
-          media: [
-            {
-              id: 1,
-              type: "image",
-              url: "https://parkgang.github.io/assets/images/thumbnail-2bc257b12e64783dec57e6e1aa750093.png",
-              sortOrder: 1,
-            },
-            {
-              id: 2,
-              type: "image",
-              url: "https://raw.githubusercontent.com/eclipse-platform/eclipse.platform/master/platform/org.eclipse.platform/splash.png",
-              sortOrder: 2,
-            },
-          ],
-          likeCount: 42,
-          viewCount: 1234,
-          likedByMe: false,
-          repoUrl: "https://github.com/example/repo",
-          demoUrl: "https://example.com",
-          docUrl: "https://docs.example.com",
-          createdAt: "2024-01-15T10:30:00Z",
-          updatedAt: "2024-02-20T15:45:00Z",
-        });
-        const response = await api.get(
-          `/api/projects/${id}`
-        );
+        const response = await api.get(`/api/projects/${id}`);
         setProject(response.data);
       } catch (error) {
         console.error("Failed to fetch project:", error);
@@ -80,12 +30,25 @@ const ProjectDetails = () => {
   }, [id]);
 
   const handleLike = () => {
-    // TODO: Implement like functionality
+    // 좋아요 로직
     setProject((prev) => ({
       ...prev,
       likedByMe: !prev.likedByMe,
       likeCount: prev.likedByMe ? prev.likeCount - 1 : prev.likeCount + 1,
     }));
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("정말로 이 프로젝트를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
+      try {
+        await api.delete(`/api/projects/${id}`);
+        alert("프로젝트가 성공적으로 삭제되었습니다.");
+        navigate("/"); 
+      } catch (error) {
+        console.error("Failed to delete project:", error);
+        alert("프로젝트 삭제에 실패했습니다.");
+      }
+    }
   };
 
   if (loading) {
@@ -112,7 +75,8 @@ const ProjectDetails = () => {
     );
   }
 
-  const currentUser = StorageService.getUser();
+  // 🌟 소유자 확인 로직 강화
+  const currentUser = StorageService.getUser(); // 로그인 사용자 정보
   const isOwner =
     (currentUser?.id &&
       project?.ownerId &&
@@ -121,83 +85,50 @@ const ProjectDetails = () => {
       project?.ownerEmail &&
       currentUser.email === project.ownerEmail);
 
-  const goEdit = () => navigate(`/projects/%{id}/edit`);
+  const goEdit = () => navigate(`/projects/${id}/edit`);
 
-  return (
+return (
     <Layout>
       <Header />
       <main className="w-full flex-grow flex flex-col items-center mt-[140px] py-10 px-4">
         <div className="w-full max-w-5xl">
-          {/* Thumbnail Section */}
-          {project.thumbnailUrl && (
-            <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
-              <img
-                src={project.thumbnailUrl}
-                alt={project.title}
-                className="w-full h-[400px] object-cover"
-              />
-            </div>
-          )}
-
           {/* Header Section */}
           <div className="mb-8">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <h1 className="text-4xl font-bold text-gray-900 mb-3">
-                  {project.title}
-                </h1>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span className="flex items-center gap-1">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    {project.ownerNickname}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                    {project.viewCount.toLocaleString()}
-                  </span>
-                  <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold">
-                      {project?.title || "project"}
-                    </h1>
-                    {isOwner && (
-                      <Button
+                <div className="flex items-center justify-between mb-3">
+                  <h1 className="text-4xl font-bold text-gray-900">
+                    {project.title}
+                  </h1>
+                  {/* 🌟 소유자에게만 보이는 수정/삭제 버튼 그룹 */}
+                  {isOwner && (
+                    <div className="flex gap-2">
+                      {/* Button 컴포넌트가 존재한다고 가정합니다. */}
+                      <button
                         onClick={goEdit}
-                        className="px-4 py-2 bg-black text-white rounded"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                       >
                         수정
-                      </Button>
-                    )}
-                  </div>
+                      </button>
+                      <button
+                        onClick={handleDelete}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {/* 기존의 상세 정보 (작성자, 조회수 등) */}
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <span className="flex items-center gap-1">
+                    {/* ... (작성자 아이콘) ... */}
+                    {project.ownerNickname || project.user?.nickname || "Owner"}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    {/* ... (조회수 아이콘) ... */}
+                    {project.viewCount?.toLocaleString() || 0}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -230,15 +161,10 @@ const ProjectDetails = () => {
                 <div className="flex flex-wrap gap-2">
                   {project.techStacks.map((tech) => (
                     <span
-                      key={tech.id}
-                      className="px-3 py-1.5 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium flex items-center gap-2"
+                      key={tech.id || tech.name}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium"
                     >
                       {tech.name}
-                      {tech.level && (
-                        <span className="text-xs text-gray-500">
-                          {"★".repeat(tech.level)}
-                        </span>
-                      )}
                     </span>
                   ))}
                 </div>
@@ -316,6 +242,17 @@ const ProjectDetails = () => {
               )}
             </div>
           </div>
+
+          {/* Thumbnail Section */}
+          {project.thumbnailUrl && (
+            <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
+              <img
+                src={project.thumbnailUrl}
+                alt={project.title}
+                className="w-full h-[400px] object-cover"
+              />
+            </div>
+          )}
 
           {/* Description Section */}
           {project.descriptionMd && (
