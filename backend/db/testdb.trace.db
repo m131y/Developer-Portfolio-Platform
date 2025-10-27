@@ -1,0 +1,3 @@
+2025-10-27 15:19:04.350634+09:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "PROFILE_IMAGE_URL CHARACTER VARYING(255)": "'https://developer-portfolio-platform.s3.ap-northeast-2.amazonaws.com/296a822d-a... (383)"; SQL statement:
+/* update for com.example.backend.user.entity.User */update users set bio=?,email=?,experience=?,job=?,location=?,nickname=?,passwo [22001-232]

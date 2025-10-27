@@ -36,6 +36,7 @@ public class User {
 
     private String job;
 
+    @Column(columnDefinition = "TEXT")
     private String profileImageUrl;
 
     @Builder.Default
