@@ -27,6 +27,7 @@ public class UserController {
      */
     @GetMapping("/profile")
     public ResponseEntity<ProfileResponseDto> getMyProfile(@AuthenticationPrincipal String email) {
+        System.out.println("Email: " + email);
         ProfileResponseDto profile = userService.getProfile(email);
         return ResponseEntity.ok(profile);
     }

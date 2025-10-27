@@ -14,13 +14,7 @@ const ProjectsList = () => {
     async function load() {
       setLoading(true);
       try {
-        const token = localStorage.getItem("token");
-
-        const res = await api.get("/api/projects", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await api.get("/api/projects");
 
         console.log(res);
 

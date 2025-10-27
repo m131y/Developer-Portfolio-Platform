@@ -51,7 +51,7 @@ const EditProject = () => {
       endDate: endDate || null,
     };
     try {
-      const response = await api.put(`api/projects${id}`, dto);
+      const response = await api.put(`api/projects/${id}`, dto);
       const updated = response.data;
       navigate(`/projects/${updated.id}`);
     } catch (err) {
