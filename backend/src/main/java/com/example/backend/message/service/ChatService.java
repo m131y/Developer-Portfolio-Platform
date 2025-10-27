@@ -1,5 +1,6 @@
 package com.example.backend.message.service;
 
+import com.example.backend.common.s3.S3UploadService;
 import com.example.backend.message.dto.*;
 import com.example.backend.message.entity.*;
 import com.example.backend.message.repository.MessageRepository;
@@ -36,6 +37,7 @@ public class ChatService {
     private final RoomParticipantRepository roomParticipantRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final S3UploadService s3UploadService;
 
     @Transactional
     public void message(MessageDto messageDto) {
@@ -136,13 +138,21 @@ public class ChatService {
         // 3. 참가자 엔티티 목록을 UserDTO 목록으로 변환
         List<UserDto> participantDtos = participants.stream()
                 .map(RoomParticipant::getUser) // RoomParticipant에서 User 엔티티 추출
-                .map(user -> UserDto.builder() // User 엔티티를 UserDTO로 변환
-                        .id(user.getId())
-                        .nickname(user.getNickname())
-                        .email(user.getEmail())
-                        .bio(user.getBio())
-                        .profileImageUrl(user.getProfileImageUrl())
-                        .build())
+                .map(user -> {
+                    // profileImageUrl을 presigned URL로 변환
+                    String profileImageUrl = user.getProfileImageUrl();
+                    if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                        profileImageUrl = s3UploadService.generatePresignedUrl(profileImageUrl);
+                    }
+
+                    return UserDto.builder() // User 엔티티를 UserDTO로 변환
+                            .id(user.getId())
+                            .nickname(user.getNickname())
+                            .email(user.getEmail())
+                            .bio(user.getBio())
+                            .profileImageUrl(profileImageUrl)
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         // 4. 최종 RoomInfoResponse DTO 생성

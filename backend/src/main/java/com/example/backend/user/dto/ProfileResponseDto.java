@@ -2,11 +2,13 @@ package com.example.backend.user.dto;
 
 import com.example.backend.user.entity.User;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Setter
 public class ProfileResponseDto {
 
     private Long id;
