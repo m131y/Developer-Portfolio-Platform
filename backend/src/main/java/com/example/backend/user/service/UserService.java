@@ -33,7 +33,15 @@ public class UserService {
      */
     public ProfileResponseDto getProfile(String email) {
         User user = findUserByEmail(email);
-        return new ProfileResponseDto(user);
+        ProfileResponseDto dto = new ProfileResponseDto(user);
+
+        // profileImageUrl을 presigned URL로 변환
+        if (dto.getProfileImageUrl() != null && !dto.getProfileImageUrl().isEmpty()) {
+            String presignedUrl = s3UploadService.generatePresignedUrl(dto.getProfileImageUrl());
+            dto.setProfileImageUrl(presignedUrl);
+        }
+
+        return dto;
     }
 
     /**
@@ -49,7 +57,15 @@ public class UserService {
         user.setLocation(requestDto.getLocation());
         user.setProfileImageUrl(requestDto.getProfileImageUrl());
 
-        return new ProfileResponseDto(user);
+        ProfileResponseDto dto = new ProfileResponseDto(user);
+
+        // profileImageUrl을 presigned URL로 변환
+        if (dto.getProfileImageUrl() != null && !dto.getProfileImageUrl().isEmpty()) {
+            String presignedUrl = s3UploadService.generatePresignedUrl(dto.getProfileImageUrl());
+            dto.setProfileImageUrl(presignedUrl);
+        }
+
+        return dto;
     }
 
     /**
@@ -66,7 +82,16 @@ public class UserService {
             newLink.setUrl(linkDto.getUrl());
             user.addSocialLink(newLink);
         }
-        return new ProfileResponseDto(user);
+
+        ProfileResponseDto dto = new ProfileResponseDto(user);
+
+        // profileImageUrl을 presigned URL로 변환
+        if (dto.getProfileImageUrl() != null && !dto.getProfileImageUrl().isEmpty()) {
+            String presignedUrl = s3UploadService.generatePresignedUrl(dto.getProfileImageUrl());
+            dto.setProfileImageUrl(presignedUrl);
+        }
+
+        return dto;
     }
 
     /**
@@ -89,7 +114,16 @@ public class UserService {
             userTechStack.setTechStack(techStack);
             user.addUserTechStack(userTechStack);
         }
-        return new ProfileResponseDto(user);
+
+        ProfileResponseDto dto = new ProfileResponseDto(user);
+
+        // profileImageUrl을 presigned URL로 변환
+        if (dto.getProfileImageUrl() != null && !dto.getProfileImageUrl().isEmpty()) {
+            String presignedUrl = s3UploadService.generatePresignedUrl(dto.getProfileImageUrl());
+            dto.setProfileImageUrl(presignedUrl);
+        }
+
+        return dto;
     }
 
     /**
@@ -100,10 +134,16 @@ public class UserService {
     @Transactional
     public ProfileResponseDto updateProfileImage(String email, MultipartFile file) throws IOException {
         User user = findUserByEmail(email);
-        String imageUrl = s3UploadService.uploadFile(file);
-        user.setProfileImageUrl(imageUrl);
+        String s3Key = s3UploadService.uploadFile(file); // S3 키(파일명)만 저장
+        user.setProfileImageUrl(s3Key);
 
-        return new ProfileResponseDto(user);
+        ProfileResponseDto dto = new ProfileResponseDto(user);
+
+        // profileImageUrl을 presigned URL로 변환하여 응답
+        String presignedUrl = s3UploadService.generatePresignedUrl(s3Key);
+        dto.setProfileImageUrl(presignedUrl);
+
+        return dto;
     }
 
     /**

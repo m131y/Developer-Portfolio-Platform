@@ -19,8 +19,13 @@ const Avatar = ({
   const borderClass = showBorder ? `ring-2 ring-${borderColor}` : "";
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+  // profileImageUrl이 이미 전체 URL(presigned URL)인 경우 그대로 사용
+  // 상대 경로인 경우에만 API_URL을 붙임
   const imageUrl = user?.profileImageUrl
-    ? `${API_URL}${user.profileImageUrl}`
+    ? (user.profileImageUrl.startsWith('http://') || user.profileImageUrl.startsWith('https://'))
+      ? user.profileImageUrl  // presigned URL은 그대로 사용
+      : `${API_URL}${user.profileImageUrl}`  // 상대 경로인 경우 API_URL 붙이기
     : null;
 
   return (

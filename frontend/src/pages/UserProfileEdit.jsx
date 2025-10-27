@@ -92,6 +92,8 @@ function UserProfileEdit() {
         setLoading(true);
         const userProfile = await fetchUserProfile();
 
+        console.log(userProfile);
+
         setFormData({
           nickname: userProfile.nickname || "",
           job: userProfile.job || "",
@@ -133,11 +135,12 @@ function UserProfileEdit() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImageFile(file);
+      // 미리보기를 위해 FileReader로 data URL 생성
       const reader = new FileReader();
       reader.onload = (event) => {
         setFormData((prev) => ({
           ...prev,
-          profileImageUrl: event.target.result,
+          profileImageUrl: event.target.result, // data:image/... 형태의 미리보기 URL
         }));
       };
       reader.readAsDataURL(file);
