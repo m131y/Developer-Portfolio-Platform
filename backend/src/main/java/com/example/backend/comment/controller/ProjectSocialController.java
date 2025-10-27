@@ -81,7 +81,7 @@ public class ProjectSocialController {
         NotificationDto notificationDto = NotificationDto.builder()
                 .receiverId(targetUser.getId().toString())
                 .content(currentUser.getNickname() + "님이 게시글에 댓글을 남겼습니다.")
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().toString())
                 .relatedUrl("/post/" + projectId)
                 .type("COMMENT")
                 .build();

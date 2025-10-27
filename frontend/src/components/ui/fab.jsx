@@ -6,12 +6,14 @@ import { FiPlus, FiPlusCircle, FiSend, FiX } from "react-icons/fi";
 import ChatList from "../chat/ChatList";
 import CreateChat from "../chat/CreateChat";
 import MessageRoom from "../chat/MessageRoom";
+import NotificationCard from "../chat/notificationCard";
+import NotificationRoom from "../chat/NotificationRoom";
 
 const FAB = () => {
   const { messageRooms, fetchMessageRooms, loading } = useMessageRoomStore();
 
   const [showCreateChat, setShowCreateChat] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
 
@@ -19,13 +21,13 @@ const FAB = () => {
     fetchMessageRooms();
   }, [fetchMessageRooms]);
 
-  const handleCloseNotification = useCallback(() => {
-    setShowNotification(false);
+  const handleCloseNotificationCenter = useCallback(() => {
+    setShowNotificationCenter(false);
     setSelectedRoomId(null);
   }, []);
 
   useEffect(() => {
-    if (showNotification) {
+    if (showNotificationCenter) {
       // 렌더링 직후(다음 이벤트 루프)에 애니메이션 상태를 true로 설정하여 효과 발동
       const timer = setTimeout(() => setIsAnimating(true), 10);
       return () => clearTimeout(timer); // 클린업
@@ -33,7 +35,7 @@ const FAB = () => {
       // 닫을 때는 애니메이션 효과를 먼저 제거
       setIsAnimating(false);
     }
-  }, [showNotification]);
+  }, [showNotificationCenter]);
 
   // ChatList에서 전달받아 RoomID를 설정하는 함수
   const handleSelectRoom = (roomId) => {
@@ -49,7 +51,7 @@ const FAB = () => {
     <div>
       <button
         // 챗 목록 토글 (on/off)
-        onClick={() => setShowNotification(!showNotification)}
+        onClick={() => setShowNotificationCenter(!showNotificationCenter)}
         // 고정 위치를 위해 FAB 버튼 자체에 fixed 클래스를 적용하는 것이 더 좋습니다.
         className="fixed bottom-8 right-8 z-50 
                    w-14 h-14 rounded-full bg-blue-500 shadow-lg 
@@ -58,11 +60,11 @@ const FAB = () => {
       >
         {/* 아이콘: 목록이 열려있으면 X, 닫혀있으면 + */}
         <span className="text-white text-3xl font-bold mb-0.5 font-presentation">
-          {showNotification ? <FiX size={25} /> : <FiPlus />}
+          {showNotificationCenter ? <FiX size={25} /> : <FiPlus />}
         </span>
       </button>
 
-      {showNotification && (
+      {showNotificationCenter && (
         <div
           className="fixed bottom-24 right-8 z-50 
                     w-[18rem] h-[30rem] bg-white rounded-xl shadow-2xl overflow-hidden 
@@ -75,12 +77,18 @@ const FAB = () => {
                     ${isAnimating ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
                     "
         >
-          {selectedRoomId ? (
+          {selectedRoomId === 1 ? (
+            <NotificationRoom
+              onClose={handleCloseNotificationCenter} // 전체 위젯 닫기
+              onBack={handleGoBackToList} // 목록으로 돌아가기
+              isWidget={true} // 위젯 내부임을 표시하는 플래그
+            />
+          ) : selectedRoomId ? (
             // 2. 채팅 상세 화면
             <MessageRoom
               // MessageRoom 컴포넌트가 위젯 내에서 작동하도록 prop을 전달
               roomId={selectedRoomId}
-              onClose={handleCloseNotification} // 전체 위젯 닫기
+              onClose={handleCloseNotificationCenter} // 전체 위젯 닫기
               onBack={handleGoBackToList} // 목록으로 돌아가기
               isWidget={true} // 위젯 내부임을 표시하는 플래그
             />
@@ -109,7 +117,7 @@ const FAB = () => {
                     Notification Center
                   </span>
                   <button
-                    onClick={handleCloseNotification}
+                    onClick={handleCloseNotificationCenter}
                     className="mr-1 mt-1 size-7 bg-gray-300 text-white rounded-full font-semibold 
                                   hover:bg-gray-400 transition-colors flex items-center justify-center"
                   >
@@ -126,10 +134,13 @@ const FAB = () => {
                 {loading ? (
                   <Loading />
                 ) : (
-                  <ChatList
-                    messageRooms={messageRooms}
-                    onSelectRoom={handleSelectRoom}
-                  />
+                  <div>
+                    <NotificationCard onSelectRoom={handleSelectRoom} />
+                    <ChatList
+                      messageRooms={messageRooms}
+                      onSelectRoom={handleSelectRoom}
+                    />
+                  </div>
                 )}
               </div>
             </>

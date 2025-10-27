@@ -13,6 +13,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -46,19 +48,6 @@ public class NotificationService {
         }
     }
 
-    private Notification toEntity(String receiverId, NotificationDto notificationDto) {
-        User receiver = userRepository.findById(Long.valueOf(receiverId))
-                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-
-        return Notification.builder()
-                .receiver(receiver)
-                .type(notificationDto.getType())
-                .content(notificationDto.getContent())
-                .relatedUrl(notificationDto.getRelatedUrl())
-                .isRead(false) // 기본적으로 읽지 않은 상태로 저장
-                .build();
-    }
-
     /**
      * 특정 사용자의 읽지 않은 알림 갯수를 가져오는 메서드
      */
@@ -79,5 +68,25 @@ public class NotificationService {
                         log.info("알림 ID {}를 읽음 처리했습니다.", notificationId);
                     }
                 });
+    }
+
+    public List<NotificationDto> getNotifications(Long userId) {
+        return notificationRepository.findAllByReceiverId(userId)
+                .stream()
+                .map(notification -> NotificationDto.fromEntity(notification))
+                .toList();
+    }
+
+    private Notification toEntity(String receiverId, NotificationDto notificationDto) {
+        User receiver = userRepository.findById(Long.valueOf(receiverId))
+                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+
+        return Notification.builder()
+                .receiver(receiver)
+                .type(notificationDto.getType())
+                .content(notificationDto.getContent())
+                .relatedUrl(notificationDto.getRelatedUrl())
+                .isRead(false) // 기본적으로 읽지 않은 상태로 저장
+                .build();
     }
 }

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import messageRoomService from "../services/messageRoom";
 
 const useMessageRoomStore = create((set) => ({
-  previousMessage: [],
+  previousMessages: [],
   messageRooms: [],
   loading: false,
   error: null,
@@ -65,8 +65,7 @@ const useMessageRoomStore = create((set) => ({
   fetchMessagesByRoom: async (roomId) => {
     try {
       const content = await messageRoomService.getMessagesByRoom(roomId);
-      set({ previousMessage: content, loading: false });
-      return content;
+      set({ previousMessages: content, loading: false });
     } catch (err) {
       set({
         error: err.response?.data.message || "Failed to get messages by room",

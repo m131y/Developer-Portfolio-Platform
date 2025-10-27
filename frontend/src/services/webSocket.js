@@ -27,12 +27,23 @@ class WebSocketService {
   connect(user, roomId, callbacks) {
     this.roomId = roomId;
     this.senderName = user.username;
-    this.userId = user.userId; // 👈 알림 구독을 위해 사용자 ID 저장
+    this.userId = user.id; // 👈 알림 구독을 위해 사용자 ID 저장
 
     this.onChatMessageReceived = callbacks.onChatMessageReceived;
     this.onNotificationReceived = callbacks.onNotificationReceived;
     this.onConnected = callbacks.onConnected;
     this.onDisconnected = callbacks.onDisconnected;
+
+    // 🚨 연결 상태 확인: 이미 연결되어 있거나 연결 시도 중이면 재연결하지 않음
+    if (
+      this.stompClient &&
+      (this.stompClient.connected ||
+        this.stompClient.webSocket.readyState ===
+          this.stompClient.webSocket.CONNECTING)
+    ) {
+      console.warn("STOMP client already connected or connecting.");
+      return;
+    }
 
     const token = localStorage.getItem("accessToken");
     const connectHeaders = token ? { Authorization: `Bearer ${token}` } : {};
@@ -40,13 +51,13 @@ class WebSocketService {
     this.stompClient = new Client({
       webSocketFactory: () => new SockJS(SERVER_URL),
       debug: (str) => {
-        // console.log(str);
+        console.log(str);
       },
       connectHeaders: connectHeaders,
       onConnect: this._handleConnect.bind(this),
       onStompError: this._handleError.bind(this),
       onWebSocketClose: this._handleClose.bind(this),
-      reconnectDelay: 5000,
+      reconnectDelay: 3000,
     });
 
     this.stompClient.activate();
@@ -60,14 +71,20 @@ class WebSocketService {
     console.log("STOMP Connected: " + frame);
     if (this.onConnected) this.onConnected();
 
-    // 1. 채팅 토픽 구독
-    this._subscribeChat();
+    // 채팅방 ID가 있을 때만 채팅 구독
+    if (this.roomId) {
+      this._subscribeChat();
+      this.sendChatMessage("ENTER", `${this.senderName}님이 입장하셨습니다.`);
+    }
 
-    // 2. 알림 큐 구독
-    this._subscribeNotification();
-
-    // 채팅방 입장 메시지 전송 (채팅 기능 유지)
-    this.sendChatMessage("ENTER", `${this.senderName}님이 입장하셨습니다.`);
+    if (this.userId) {
+      this._subscribeNotification();
+    } else {
+      // 🚨 [디버깅 코드 추가] 🚨 userId가 없어서 구독이 실패했을 때 로그
+      console.warn(
+        `STOMP: 알림 구독 실패. this.userId가 유효하지 않음: ${this.userId}`
+      );
+    }
   }
 
   _handleError(frame) {
@@ -99,14 +116,44 @@ class WebSocketService {
 
   // 3-2. 알림 큐 구독
   _subscribeNotification() {
+    console.log(
+      `STOMP: 알림 큐 구독 시도 - /user/queue/notifications (User ID: ${this.userId})`
+    );
+
     if (!this.stompClient || !this.userId) return;
 
     // /user/queue/notifications 경로를 구독합니다. (1:1 메시징)
-    this.stompClient.subscribe(`/user/queue/notifications`, (message) => {
-      console.log("알림 메시지 수신 성공:", message.body);
-      const receivedNoti = JSON.parse(message.body);
-      if (this.onNotificationReceived) {
-        this.onNotificationReceived(receivedNoti);
+    this.stompClient.subscribe(`/user/queue/notifications`, (notification) => {
+      console.log("-----------------------------------------");
+      console.log(
+        "🔔 [알림 도착] STOMP 프레임 수신 성공 (Raw Message):",
+        notification
+      );
+      console.log("프레임 바디:", notification.body);
+      console.log("-----------------------------------------");
+
+      // 백엔드에서 DTO 객체를 보냈기 때문에, 바디는 깨끗한 JSON 문자열이어야 합니다.
+      try {
+        // 이중 문자열일 경우를 대비해 1차 시도:
+        let body = notification.body;
+
+        // 만약 STOMP 프레임이 바디를 문자열로 감싸서 보낸다면, 한 번 더 파싱해야 합니다.
+        if (body.startsWith('"') && body.endsWith('"')) {
+          // 이중 JSON 문자열이라고 가정하고, 바디를 JSON.parse합니다. (예: '"{"id":1}"' -> '{"id":1}')
+          body = JSON.parse(body);
+        }
+
+        const receivedNoti = JSON.parse(body);
+
+        if (this.onNotificationReceived) {
+          this.onNotificationReceived(receivedNoti);
+          console.log("✅ 알림 메시지 콜백 실행 완료.");
+        } else {
+          console.warn("경고: 알림 메시지 콜백이 설정되지 않았습니다.");
+        }
+      } catch (e) {
+        console.error("❌ 알림 JSON 파싱 또는 콜백 실행 중 오류:", e);
+        console.error("오류 발생 메시지 바디:", notification.body);
       }
     });
   }
@@ -159,6 +206,11 @@ class WebSocketService {
       this.stompClient = null;
       console.log("STOMP Disconnected.");
     }
+  }
+
+  simulateNotificationPush(notificationData) {
+    this.onNotificationReceived(notificationData);
+    console.log(`[Service Mock] Pushing notification data to Store callback.`);
   }
 }
 

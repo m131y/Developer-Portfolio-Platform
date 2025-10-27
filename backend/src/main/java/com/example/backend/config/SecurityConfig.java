@@ -70,9 +70,9 @@ public class SecurityConfig {
                         "/ws-stomp/**",
                         "/topic/**",
                         "/queue/**",
-                        "/app/**"
+                        "/app/**",
+                        "/user/**"
                 ).permitAll()
-
                 .anyRequest().authenticated()
         );
 

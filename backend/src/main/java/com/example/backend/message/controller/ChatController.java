@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -79,5 +81,10 @@ public class ChatController {
     ) {
         chatService.deleteMessageRoom(roomId);
         return ResponseEntity.ok("채팅방이 삭제되었습니다.");
+    }
+
+    @GetMapping("/api/messages/{roomId}/messages")
+    public ResponseEntity<List<MessageDto>> getMessagesByRoom(@PathVariable Long roomId) {
+        return ResponseEntity.ok(chatService.getMessagesByRoom(roomId));
     }
 }

@@ -38,6 +38,7 @@ public class User {
 
     private String profileImageUrl;
 
+    @Builder.Default
     private String role = "ROLE_USER";
 
     private String provider; // github, google

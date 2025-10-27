@@ -19,16 +19,16 @@ public class NotificationDto {
     private String content;
     private String relatedUrl;
     private boolean isRead;
-    private LocalDateTime createdAt;
+    private String createdAt;
 
-    public NotificationDto fromEntity(Notification notification) {
+    public static NotificationDto fromEntity(Notification notification) {
         return NotificationDto.builder()
                 .receiverId(notification.getReceiver().getId().toString())
                 .type(notification.getType())
                 .content(notification.getContent())
                 .relatedUrl(notification.getRelatedUrl())
                 .isRead(notification.getIsRead())
-                .createdAt(notification.getCreatedAt())
+                .createdAt(notification.getCreatedAt().toString())
                 .build();
     }
 }
