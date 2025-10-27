@@ -13,7 +13,7 @@ const Login = () => {
   return (
     <Layout>
       <Header />
-      // Tailwind CSS 클래스 사용
+
       <div className="bg-gray-900 min-h-screen flex flex-col items-center justify-center text-white">
         <header className="text-center">
           <h1 className="text-4xl font-bold mb-4">소셜 로그인 테스트</h1>

@@ -1,45 +1,46 @@
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+// frontend/src/pages/OAuthRedirectPage.jsx
+
+import React, { useEffect } from "react";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
+import StorageService from "../services/storage"; // StorageService import 경로 확인
 
 const OAuthRedirectPage = () => {
-  // URL의 쿼리 파라미터( ?token=... )를 읽어옴
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation(); // URL을 분석하는 데 사용
 
-  // 'token'이라는 이름의 쿼리 파라미터 값을 가져옴
+  // URL에서 'token' 파라미터를 가져옵니다.
   const token = searchParams.get("token");
+  // URL에 'error' 파라미터가 있는지 확인합니다. (로그인 실패 시)
+  const error = searchParams.get("error");
 
   useEffect(() => {
     if (token) {
-      console.log("백엔드에서 JWT 토큰을 받았습니다:", token);
+      console.log("JWT 토큰 저장 완료:", token);
 
-      // 토큰을 로컬 스토리지에 저장 (브라우저에 저장)
-      localStorage.setItem("jwt_token", token);
+      // 1. 토큰 저장
+      StorageService.setAccessToken(token);
 
-      // 토큰 저장 후 메인 페이지로 이동
-      window.location.href = "/";
+      // 2. 🚨 [핵심] 토큰 저장 후, 메인 페이지로 이동합니다.
+      //    Header 컴포넌트는 메인 페이지에서 토큰을 읽어 UI를 프로필 아이콘으로 변경할 것입니다.
+      navigate("/", { replace: true });
+    } else if (error) {
+      // 3. 토큰 대신 에러 파라미터가 있다면 로그인 실패 처리
+      console.error("OAuth 로그인 실패:", error);
+      alert("로그인에 실패했습니다. 다시 시도해 주세요.");
+      navigate("/login", { replace: true });
+    } else {
+      // 4. 토큰도 에러도 없다면, 경로가 잘못된 것으로 간주하고 로그인 페이지로 리다이렉트
+      navigate("/login", { replace: true });
     }
-  }, [token]); // token 값이 변경될 때만 실행
+    // 의존성 배열에 navigate와 location (혹은 searchParams)을 포함합니다.
+  }, [token, error, navigate]);
 
   return (
     <div className="bg-gray-900 min-h-screen flex flex-col items-center justify-center text-white">
       <header className="text-center p-4">
         <h1 className="text-4xl font-bold mb-4">로그인 처리 중...</h1>
-        {token ? (
-          <div className="w-full max-w-2xl mx-auto">
-            <h2 className="text-2xl text-green-400 mb-4">로그인 성공! 🎉</h2>
-            <p className="mb-2">
-              발급받은 토큰 (F12 개발자 도구 Console 또는 Storage 확인):
-            </p>
-            {/* 토큰을 화면에 직접 표시 (테스트용) */}
-            <p className="bg-gray-700 text-white p-4 rounded-lg break-all text-sm">
-              {token}
-            </p>
-          </div>
-        ) : (
-          <p className="text-red-400">
-            토큰을 받지 못했습니다. 로그인에 실패했습니다.
-          </p>
-        )}
+        <p>자동으로 이동하지 않으면 새로고침해주세요.</p>
       </header>
     </div>
   );
