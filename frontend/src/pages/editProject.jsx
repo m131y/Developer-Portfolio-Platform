@@ -3,7 +3,7 @@ import Footer from "../components/layouts/Footer";
 import Header from "../components/layouts/Header";
 import Layout from "../components/layouts/MainLayout";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 
 const EditProject = () => {
   const { id } = useParams();
@@ -20,7 +20,7 @@ const EditProject = () => {
   useEffect(() => {
     async function loadProject() {
       try {
-        const response = await axios.get("http://localhost:8080/api/projects${id}");
+        const response = await api.get(`api/projects${id}`);
         const data = response.data;
         setTitle(data.title || "");
         setSummary(data.summary || "");
@@ -51,7 +51,7 @@ const EditProject = () => {
       endDate: endDate || null,
     };
     try {
-      const response = await axios.put("http://localhost:8080/api/projects${id}", dto);
+      const response = await api.put(`api/projects${id}`, dto);
       const updated = response.data;
       navigate(`/projects/${updated.id}`);
     } catch (err) {

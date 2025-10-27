@@ -6,6 +6,7 @@ import Header from "../components/layouts/Header";
 import Layout from "../components/layouts/MainLayout";
 import Button from "../components/ui/Button";
 import axios from "axios";
+import api from "../services/api";
 
 const ProjectDetails = () => {
   const navigate = useNavigate();
@@ -63,8 +64,8 @@ const ProjectDetails = () => {
         //   createdAt: "2024-01-15T10:30:00Z",
         //   updatedAt: "2024-02-20T15:45:00Z",
         // });
-        const response = await axios.get(
-          `http://localhost:8080/api/projects/${id}`
+        const response = await api.get(
+          `/api/projects/${id}`
         );
         setProject(response.data);
       } catch (error) {

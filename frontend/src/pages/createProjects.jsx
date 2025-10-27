@@ -4,7 +4,7 @@ import Header from "../components/layouts/Header";
 import Layout from "../components/layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 import StorageService from "../services/storage";
-import axios from "axios";
+import api from "../services/api";
 
 const CreateProjects = () => {
   const navigate = useNavigate();
@@ -55,8 +55,8 @@ const CreateProjects = () => {
           : [],
       };
 
-      const res = await axios.post(
-        "http://localhost:8080/api/projects",
+      const res = await api.post(
+        "/api/projects",
         payload,
         {
           headers: { "Content-Type": "application/json" },

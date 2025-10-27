@@ -8,7 +8,6 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: false,
 });
 
 api.interceptors.request.use(
@@ -25,9 +24,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (err) => {
-    if (err?.response?.status === 401) {
+    if (err.response?.status === 401) {
       StorageService.clear();
-      // window.location.href = "/login"; // 필요시 자동 리다이렉트
+      window.location.href = "/login";
     }
     return Promise.reject(err);
   }
