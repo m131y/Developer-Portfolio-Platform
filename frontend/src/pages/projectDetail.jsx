@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import StorageService from "../services/storage";
 import Footer from "../components/layouts/Footer";
 import Header from "../components/layouts/Header";
 import Layout from "../components/layouts/MainLayout";
+import Button from "../components/ui/Button";
+import axios from "axios";
+import api from "../services/api";
 
 const ProjectDetails = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,8 +64,13 @@ const ProjectDetails = () => {
           createdAt: "2024-01-15T10:30:00Z",
           updatedAt: "2024-02-20T15:45:00Z",
         });
+        const response = await api.get(
+          `/api/projects/${id}`
+        );
+        setProject(response.data);
       } catch (error) {
         console.error("Failed to fetch project:", error);
+        setProject(null);
       } finally {
         setLoading(false);
       }
@@ -101,6 +111,17 @@ const ProjectDetails = () => {
       </Layout>
     );
   }
+
+  const currentUser = StorageService.getUser();
+  const isOwner =
+    (currentUser?.id &&
+      project?.ownerId &&
+      String(currentUser.id) === String(project.ownerId)) ||
+    (currentUser?.email &&
+      project?.ownerEmail &&
+      currentUser.email === project.ownerEmail);
+
+  const goEdit = () => navigate(`/projects/%{id}/edit`);
 
   return (
     <Layout>
@@ -164,6 +185,19 @@ const ProjectDetails = () => {
                     </svg>
                     {project.viewCount.toLocaleString()}
                   </span>
+                  <div className="flex items-center justify-between mb-6">
+                    <h1 className="text-2xl font-bold">
+                      {project?.title || "project"}
+                    </h1>
+                    {isOwner && (
+                      <Button
+                        onClick={goEdit}
+                        className="px-4 py-2 bg-black text-white rounded"
+                      >
+                        수정
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">

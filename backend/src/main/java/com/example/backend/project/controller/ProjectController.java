@@ -51,6 +51,8 @@ public class ProjectController {
                 .body(projectService.createProject(dto, userId));
     }
 
+
+
     @GetMapping ("/{id}")
     public ResponseEntity<ProjectDetailDto> detail(
             @AuthenticationPrincipal String userEmail,

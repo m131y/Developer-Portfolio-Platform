@@ -13,7 +13,10 @@ const messageRoomService = {
     const response = await api.get("/api/messages/rooms", {
       params: { page, size, userId },
     });
-    return response.data.content;
+    // return response.data.content;
+    return Array.isArray(response?.data?.content)
+      ? response.data.content
+      : response.data;
   },
 
   deleteMessageRooms: async (roomId) => {

@@ -3,8 +3,7 @@ import Header from "../components/layouts/Header";
 import Layout from "../components/layouts/MainLayout";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchWithAuth } from "../services/auth";
-import axios from "axios";
+import api from "../services/api";
 
 const ProjectsList = () => {
   const [projects, setProjects] = useState([]);
@@ -15,13 +14,7 @@ const ProjectsList = () => {
     async function load() {
       setLoading(true);
       try {
-        const token = localStorage.getItem("token");
-
-        const res = await axios.get("http://localhost:8080/api/projects", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await api.get("/api/projects");
 
         console.log(res);
 
