@@ -17,13 +17,12 @@ const CreateProjects = () => {
     techStacks: "",
     license: "",
   });
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false); // 1. loading 상태 제거
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +37,7 @@ const CreateProjects = () => {
       return;
     }
 
-    setLoading(true);
+    // setLoading(true); // 1. loading 상태 제거
     try {
       const payload = {
         title: formData.title.trim(),
@@ -55,42 +54,32 @@ const CreateProjects = () => {
           : [],
       };
 
-      const res = await api.post(
-        "/api/projects",
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      await api.post("/api/projects", payload, {
+        headers: { "Content-Type": "application/json" },
+      });
 
+      // 2. 요청 성공 시 /projects (리스트) 페이지로 바로 이동
+      navigate("/projects");
+
+      /* // 기존 상세 페이지 이동 로직
       const id = res?.data?.id ?? res?.data?.projectId;
       if (!id) {
-        //다른키인지 로그 확인
         console.warn("생성 응답에 id가 없습니다. res.data =", res.data);
-        // 아이디카 없다면 리스트로 이동
         navigate("/projects");
         return;
       }
-      navigate(`/projects/${id}`);
+      navigate(`/projects/${id}`); 
+      */
     } catch (err) {
       console.error("Create Project failed:", err?.response || err);
       const msg = err?.response?.data?.message || err.message || "생성 실패";
       alert(msg);
-    } finally {
-      setLoading(false);
     }
-    // console.log("Form submitted:", formData);
-    // TODO: Add API call to create repository
+    // 1. loading 상태 제거 (finally 블록 제거)
+    // finally {
+    //   setLoading(false);
+    // }
   };
-
-  // 위에 포함
-  // const handleInputChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     [name]: value,
-  //   }));
-  // };
 
   return (
     <Layout>
@@ -150,23 +139,27 @@ const CreateProjects = () => {
               </div>
             </div>
             <div>
-                <label className = "flex-1 px-15 py-2  mb-1 font-semibold gap-1">Project Start</label>
-                <input 
+              <label className="flex-1 px-15 py-2  mb-1 font-semibold gap-1">
+                Project Start
+              </label>
+              <input
                 type="date"
                 name="startDate"
                 value={formData.startDate}
                 onChange={handleInputChange}
                 className="border rounded p-2"
-                />
-                <label className = "flex-1 px-15 py-2  mb-1 font-semibold gap-1">End Project</label>
-                <input 
+              />
+              <label className="flex-1 px-15 py-2  mb-1 font-semibold gap-1">
+                End Project
+              </label>
+              <input
                 type="date"
                 name="endDate"
                 value={formData.endDate}
                 onChange={handleInputChange}
                 className="border rounded p-2"
-                />
-              </div>
+              />
+            </div>
 
             {/* Description Textarea */}
             <div>
@@ -213,10 +206,15 @@ const CreateProjects = () => {
             <div className="pt-4 flex justify-end">
               <button
                 type="submit"
+                // 4. onClick 제거: 이 버튼은 type="submit"이므로 폼의 onSubmit(handleSubmit)을 실행합니다.
+                // onClick으로 navigate를 호출하면 submit이 완료되기 전에 페이지가 이동됩니다.
+                // onClick={() => navigate("/projects")}
                 className="py-4 px-6 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99]"
-                disabled={loading}
+                // 3. disabled 및 loading 텍스트 제거
+                // disabled={loading}
               >
-                {loading ? "Creating..." : "Create Project"}
+                {/* {loading ? "Creating..." : "Create Project"} */}
+                Create Project
               </button>
             </div>
           </form>

@@ -553,7 +553,7 @@ function UserProfileEdit() {
               <div className="flex items-center space-x-4 ml-auto">
                 <button
                   type="button"
-                  onClick={() => navigate("/profile")}
+                  onClick={() => navigate("/")}
                   className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   disabled={saving}
                 >
