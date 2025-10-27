@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import { webSocketService } from "../services/webSocket";
+import { useCallback } from "react";
 
 const useWebSocketStore = create((set, get) => ({
   messages: [],
   notifications: [],
   isConnected: false,
+  isLoading: false,
 
   // Service 객체에 전달할 콜백 함수 정의
   callbacks: {
@@ -19,17 +21,18 @@ const useWebSocketStore = create((set, get) => ({
     },
     onConnected: () => {
       set({ isConnected: true });
+      console.log("Store: STOMP 연결 성공 및 구독 완료.");
     },
     onDisconnected: () => {
       set({ isConnected: false });
+      console.log("Store: STOMP 연결 해제됨.");
     },
   },
 
   // ------------------------------------
   // 1. 연결 액션
   // ------------------------------------
-  connect: (user, roomId, previousMessage) => {
-    set({ messages: previousMessage || [] });
+  connect: (user, roomId) => {
     webSocketService.connect(user, roomId, get().callbacks); // 👈 변경
   },
 
@@ -50,22 +53,41 @@ const useWebSocketStore = create((set, get) => ({
   // 4. 연결 해제 액션
   // ------------------------------------
   disconnect: () => {
-    // 🚨 서비스 객체 이름 변경
     webSocketService.disconnect(); // 👈 변경
 
-    // 상태 초기화
     set({
       messages: [],
       notifications: [], // 👈 알림 상태도 초기화
-      isConnected: false,
     });
   },
 
+  // 5. 알림 수신 시뮬레이션 액션 (테스트 목적)
+  simulateNotification: (content) => {
+    const newNotification = {
+      content: content,
+      timestamp: Date.now(),
+    };
+    // set 함수를 직접 호출하는 대신, Service에 요청하여 Service가 콜백을 실행하도록 유도합니다.
+    // 이것이 실제 웹소켓 푸시를 가장 정확하게 시뮬레이션하는 방법입니다.
+    // webSocketService가 연결 시 받았던 콜백을 이 시점에서 실행해야 합니다.
+    webSocketService.simulateNotificationPush(newNotification);
+    console.log(
+      `[Zustand Mock Action] Notification simulation requested via Service: ${content}`
+    );
+  },
   // ------------------------------------
   // 5. 알림 상태 관리 액션 (예시)
   // ------------------------------------
   clearNotifications: () => {
     set({ notifications: [] }); // 알림 창을 닫거나 모두 읽었을 때 사용
+  },
+
+  setMessages: (previousMessages) => {
+    set({ messages: previousMessages });
+  },
+
+  setNotifications: (previousNotifications) => {
+    set({ notifications: previousNotifications });
   },
 }));
 

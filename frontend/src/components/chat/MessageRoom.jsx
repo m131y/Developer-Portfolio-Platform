@@ -1,12 +1,13 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 import { FiChevronLeft, FiSend, FiX } from "react-icons/fi";
+
 import useMessageRoomStore from "../../store/messageRoomStore";
-import useWebSocketStore from "../../store/webSocketStore";
 import Loading from "../common/Loading";
+import useWebSocketStore from "../../store/webSocketStore";
 
 const MessageRoom = ({ roomId: propRoomId, onBack, onClose, isWidget }) => {
-  const { previousMessage, fetchMessagesByRoom, loading } =
+  const { previousMessages, fetchMessagesByRoom, loading } =
     useMessageRoomStore();
   // const { user } = useAuthStore();
   const user = {
@@ -17,9 +18,14 @@ const MessageRoom = ({ roomId: propRoomId, onBack, onClose, isWidget }) => {
     bio: null,
     profileImageUrl: null,
   };
-
-  const { messages, isConnected, connect, sendMessage, disconnect } =
-    useWebSocketStore();
+  const {
+    messages,
+    isConnected,
+    connect,
+    sendMessage,
+    disconnect,
+    setMessages,
+  } = useWebSocketStore();
 
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,18 +37,23 @@ const MessageRoom = ({ roomId: propRoomId, onBack, onClose, isWidget }) => {
   // 메시지 컨테이너 ref (높이 계산 등에 필요할 수 있으나 여기서는 주로 스크롤용)
   const messageContainerRef = useRef(null);
 
+  const stableFetchMessages = useCallback(fetchMessagesByRoom, [
+    fetchMessagesByRoom,
+  ]);
+  const stableConnect = useCallback(connect, [connect]);
+  const stableDisconnect = useCallback(disconnect, [disconnect]);
+
   useEffect(() => {
-    // 💡 수정: 비동기 로직을 처리하는 내부 함수를 정의하여 순서를 강제합니다.
     const loadHistoryAndConnect = async () => {
-      // 사용자 정보가 없거나 roomId가 유효하지 않으면 실행 중단
       if (!user || isNaN(roomId)) return;
 
       setIsLoading(true);
 
       try {
-        const initialMessages = await fetchMessagesByRoom(roomId);
-
-        connect(user, roomId, initialMessages);
+        await stableFetchMessages(roomId);
+        console.log(previousMessages);
+        setMessages(previousMessages);
+        connect(user, roomId);
       } catch (error) {
         console.error("Failed to load chat history and connect:", error);
       } finally {
@@ -52,14 +63,13 @@ const MessageRoom = ({ roomId: propRoomId, onBack, onClose, isWidget }) => {
 
     loadHistoryAndConnect();
 
-    // 컴포넌트 언마운트 시 WebSocket 연결 해제
+    // 💡 3. Cleanup 함수에서 안정적인 disconnect 참조 사용
     return () => {
-      disconnect();
+      stableDisconnect();
     };
-  }, [user, roomId, fetchMessagesByRoom, connect, disconnect]);
+  }, [roomId, stableFetchMessages, stableConnect, stableDisconnect]);
 
   useEffect(() => {
-    console.log(messages);
     // 메시지가 업데이트될 때마다 스크롤을 맨 아래로 이동
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);

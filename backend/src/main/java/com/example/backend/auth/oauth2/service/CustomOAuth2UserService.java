@@ -23,7 +23,6 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-// @Transactional(readOnly = true) // ◀◀◀ 이전에 삭제 또는 주석 처리되어 있어야 합니다.
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;

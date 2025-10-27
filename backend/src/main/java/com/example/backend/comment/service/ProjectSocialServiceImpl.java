@@ -7,10 +7,17 @@ import com.example.backend.comment.entity.ProjectComment;
 import com.example.backend.comment.entity.ProjectLike;
 import com.example.backend.comment.repository.ProjectCommentRepository;
 import com.example.backend.comment.repository.ProjectLikeRepository;
+import com.example.backend.notification.dto.NotificationDto;
+import com.example.backend.notification.service.NotificationService;
+import com.example.backend.project.entity.Project;
+import com.example.backend.project.repository.ProjectRepository;
+import com.example.backend.user.entity.User;
+import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,9 +28,19 @@ public class ProjectSocialServiceImpl implements ProjectSocialService{
 
     private final ProjectLikeRepository likeRepository;
     private final ProjectCommentRepository commentRepository;
+    private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
+    private final NotificationService notificationService;
 
     @Override
     public LikeResponseDto toggleLike(Long projectId, Long userId){
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(()->new RuntimeException("해당 사용자가 없습니다."));
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(()->new RuntimeException("해당 프로젝트가 없습니다."));
+        Long targetUserId = project.getOwnerId();
+
         boolean exists = likeRepository.existsByProjectIdAndUserId(projectId, userId);
         if(exists) {
             //Unlike
@@ -38,6 +55,16 @@ public class ProjectSocialServiceImpl implements ProjectSocialService{
                     .userId(userId)
                     .build();
             likeRepository.save(like);
+
+            NotificationDto notificationDto = NotificationDto.builder()
+                    .receiverId(targetUserId.toString())
+                    .content(currentUser.getNickname() + "님이 팔로우를 했습니다.")
+                    .createdAt(LocalDateTime.now().toString())
+                    .relatedUrl("/profile/" + currentUser.getId())
+                    .type("FOLLOW")
+                    .build();
+
+            notificationService.sendNotification(String.valueOf(targetUserId), notificationDto);
         }
         long count = likeRepository.countByProjectId(projectId);
         boolean likeByMe = !exists;
