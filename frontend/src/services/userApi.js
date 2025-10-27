@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-catch */
 // frontend/src/services/userApi.js
 
 import api from "./api";
