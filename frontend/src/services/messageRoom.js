@@ -1,15 +1,17 @@
 import api from "./api";
 
 const messageRoomService = {
-  createMessageRoom: async (requestBody) => {
+  createMessageRoom: async (requestBody, creatorId) => {
     console.log(requestBody);
-    const response = await api.post("/api/messages/rooms", requestBody);
+    const response = await api.post("/api/messages/rooms", requestBody, {
+      params: { creatorId },
+    });
     return response.data;
   },
 
-  getAllMessageRooms: async (page = 0, size = 10) => {
+  getAllMessageRooms: async (page = 0, size = 10, userId) => {
     const response = await api.get("/api/messages/rooms", {
-      params: { page, size },
+      params: { page, size, userId },
     });
     return response.data.content;
   },

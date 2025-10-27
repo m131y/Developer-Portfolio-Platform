@@ -4,8 +4,11 @@ import com.example.backend.message.dto.MessageDto;
 import com.example.backend.notification.dto.NotificationDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -14,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 
-@RequiredArgsConstructor
+
 @Service
 @Slf4j
 public class RedisSubscriber implements MessageListener{
@@ -22,6 +25,14 @@ public class RedisSubscriber implements MessageListener{
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
     private final StringRedisSerializer stringSerializer = new StringRedisSerializer();
+
+    @Autowired
+    public RedisSubscriber(@Qualifier("simpMessagingTemplate") SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper) {
+        this.messagingTemplate = messagingTemplate;
+        this.objectMapper = objectMapper;
+
+        log.info("✅ SimpMessagingTemplate 주입 확인: Class = {}", messagingTemplate.getClass().getName());
+    }
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -67,17 +78,17 @@ public class RedisSubscriber implements MessageListener{
      * 알림 메시지 처리 로직
      */
     private void handleNotificationMessage(String messageBody) throws JsonProcessingException {
-        NotificationDto notificationDto = objectMapper.readValue(messageBody, NotificationDto.class);
+        String actualJsonBody = objectMapper.readValue(messageBody, String.class);
+
+        NotificationDto notificationDto = objectMapper.readValue(actualJsonBody, NotificationDto.class);
 
         // STOMP 경로로 전송
         String destination = "/queue/notifications";
 
         // 1:1 메시징은 convertAndSendToUser를 사용해야 합니다.
-        // Spring이 사용자 ID(Principal)에 해당하는 세션의 /queue/notifications 경로로 메시지를 전달합니다.
         String receiverId = notificationDto.getReceiverId();
 
         messagingTemplate.convertAndSendToUser(receiverId, destination, notificationDto);
-        //messagingTemplate.convertAndSendToUser(receiverId, destination, messageBody);
         log.info("Sent Notification to user {} at WebSocket destination: /user{}", receiverId, destination);
     }
 }

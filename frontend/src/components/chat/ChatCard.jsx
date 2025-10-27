@@ -9,19 +9,6 @@ import { useEffect, useRef, useState } from "react";
 import useMessageRoomStore from "../../store/messageRoomStore";
 
 const ChatCard = ({ messageRoom, onSelectRoom }) => {
-  // const { user } = useAuthStore();
-  const user = {
-    id: 1,
-    username: "user1",
-    email: "user1@gmail.com",
-    fullName: "user1",
-    bio: null,
-    profileImageUrl: null,
-  };
-
-  // // 1. 상대방 사용자 정보를 저장할 로컬 상태를 추가
-  // const [otherUser, setOtherUser] = useState(null); // 💡 이 부분이 핵심입니다.
-
   const { deleteMessageRooms, loading } = useMessageRoomStore();
 
   const menuRef = useRef(null);
@@ -53,20 +40,6 @@ const ChatCard = ({ messageRoom, onSelectRoom }) => {
       }
     }
   };
-
-  // useEffect(() => {
-  //   const loadUserProfile = async () => {
-  //     try {
-  //       // getUserProfile은 프로필 데이터를 반환하도록 수정되어야 합니다.
-  //       const profileData = await getUserProfile(otherUserId);
-  //       // 3. 전역 상태를 덮어쓰지 않고, 로컬 상태를 업데이트합니다.
-  //       setOtherUser(profileData.userProfile);
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   };
-  //   loadUserProfile();
-  // }, [getUserProfile, otherUserId]);
 
   useEffect(() => {
     const handleClickOutSide = (event) => {
