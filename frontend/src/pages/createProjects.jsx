@@ -1,221 +1,214 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Footer from "../components/layouts/Footer";
 import Header from "../components/layouts/Header";
 import Layout from "../components/layouts/MainLayout";
-import { useNavigate } from "react-router-dom";
-import StorageService from "../services/storage";
+import { useState } from "react";
 import api from "../services/api";
 
-const CreateProjects = () => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    visibility: true,
-    startDate: "",
-    endDate: "",
-    techStacks: "",
-    license: "",
-  });
-  // const [loading, setLoading] = useState(false); // 1. loading 상태 제거
+// 날짜 형식을 "YYYY-MM-DD"로 변환하는 헬퍼 함수
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    return new Date(dateString).toISOString().split("T")[0];
+  } catch (e) {
+    console.error("Invalid date format:", dateString);
+    return "";
+  }
+};
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+// 오늘 날짜를 "YYYY-MM-DD" 형식으로 반환하는 헬퍼 함수
+const getTodayDateString = () => {
+  return formatDate(new Date());
+};
+
+const CreateProject = () => {
+  const navigate = useNavigate();
+  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 초기 상태 설정: 시작 날짜는 오늘 날짜로 기본 설정
+  const [title, setTitle] = useState("");
+  const [summary, setSummary] = useState("");
+  const [description, setDescription] = useState("");
+  const [startDate, setStartDate] = useState(getTodayDateString()); // 🌟 오늘 날짜로 초기화
+  const [endDate, setEndDate] = useState("");
+  
+  // 미디어 및 기술 스택은 빈 배열로 초기화
+  const [media, setMedia] = useState([]);
+  const [techStacks, setTechStacks] = useState([]);
+  // 기타 생성 시 필요한 필드 (API 요구사항에 따라 추가)
+  const [visibility, setVisibility] = useState("public");
+  const [status, setStatus] = useState("진행중");
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!StorageService.getAccessToken()) {
-      alert("로그인이 필요합니다.");
-      navigate("/login");
-      return;
-    }
-    if (!formData.title.trim()) {
-      alert("제목을 입력해주세요.");
-      return;
-    }
-
-    // setLoading(true); // 1. loading 상태 제거
-    try {
-      const payload = {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        visibility: formData.visibility,
-        startDate: formData.startDate || null,
-        endDate: formData.endDate || null,
-        license: formData.license,
-        techStacks: formData.techStacks
-          ? formData.techStacks
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : [],
-      };
-
-      await api.post("/api/projects", payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-
-      // 2. 요청 성공 시 /projects (리스트) 페이지로 바로 이동
-      navigate("/projects");
-
-      /* // 기존 상세 페이지 이동 로직
-      const id = res?.data?.id ?? res?.data?.projectId;
-      if (!id) {
-        console.warn("생성 응답에 id가 없습니다. res.data =", res.data);
-        navigate("/projects");
+    setError(null);
+    setIsSubmitting(true);
+    
+    // 유효성 검사 (예시)
+    if (!title || !startDate) {
+        setError("제목과 시작 날짜는 필수입니다.");
+        setIsSubmitting(false);
         return;
-      }
-      navigate(`/projects/${id}`); 
-      */
-    } catch (err) {
-      console.error("Create Project failed:", err?.response || err);
-      const msg = err?.response?.data?.message || err.message || "생성 실패";
-      alert(msg);
     }
-    // 1. loading 상태 제거 (finally 블록 제거)
-    // finally {
-    //   setLoading(false);
-    // }
+
+    const dto = {
+      title,
+      summary: summary || null,
+      descriptionMd: description || null,
+      startDate: startDate || null, 
+      endDate: endDate || null,
+      media, 
+      techStacks,
+      visibility, // 기본값: public
+      status,     // 기본값: 진행중
+      
+      // TODO: 필요한 다른 필드(repoUrl, demoUrl 등) 추가
+    };
+
+    try {
+      // 새 프로젝트 생성 (POST 요청)
+      const response = await api.post(`/api/projects`, dto); 
+      const newProject = response.data;
+      navigate(`/projects/${newProject.id}`); // 생성된 프로젝트 상세 페이지로 이동
+    } catch (err) {
+      console.error(err);
+      const msg =
+        err?.response?.data?.message ||
+        (typeof err?.response?.data === "string" && err.response.data) ||
+        err.message ||
+        "Failed to create project";
+      if (err?.response?.status === 401) {
+        setError("프로젝트를 생성하려면 로그인해야 합니다.");
+      } else {
+        setError(msg);
+      }
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
     <Layout>
       <Header />
-      <main className="w-full flex-grow flex flex-col items-center mt-[140px] py-10 px-4">
-        <div className="w-full max-w-3xl">
-          {/* Header Section */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-3">
-              Create a new Project
-            </h1>
-            <h3 className="text-xl text-gray-600">프로젝트를 관리해보세요</h3>
-          </div>
+      <main className="w-full flex-grow flex flex-col items-center mt-[140px] py-10">
+        <div className="container mx-auto p-4 max-w-4xl">
+          <h2 className="text-3xl font-bold mb-6 text-gray-900">새 프로젝트 등록</h2>
+          <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+            {error && (
+                <div className="p-3 bg-red-100 text-red-700 border border-red-300 rounded-lg">{error}</div>
+            )}
 
-          {/* Form Section */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex gap-3">
-              {/* Title Input */}
+            {/* Title */}
+            <div>
+              <label htmlFor="title" className="block mb-2 font-semibold text-gray-700">제목 <span className="text-red-500">*</span></label>
               <input
-                // type="text"
-                // id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                placeholder="제목"
+                id="title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
                 required
-                className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-700 bg-white text-gray-900 placeholder-gray-400 transition-colors"
+                maxLength={140}
+                placeholder="프로젝트 제목을 입력하세요."
               />
-              {/* Public/Private Toggle */}
-              <div className="bg-gray-200 rounded-full p-1 flex gap-1 min-w-[200px]">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, visibility: true }))
-                  }
-                  className={`flex-1 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                    formData.visibility
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  Public
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, visibility: false }))
-                  }
-                  className={`flex-1 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                    !formData.visibility
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  Private
-                </button>
+            </div>
+            
+            {/* Summary */}
+            <div>
+              <label htmlFor="summary" className="block mb-2 font-semibold text-gray-700">요약</label>
+              <input
+                id="summary"
+                type="text"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-lg"
+                maxLength={400}
+                placeholder="프로젝트를 한 줄로 설명해주세요."
+              />
+            </div>
+            
+            {/* Description (Markdown) */}
+            <div>
+              <label htmlFor="description" className="block mb-2 font-semibold text-gray-700">상세 설명 (Markdown)</label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-lg h-40 resize-y"
+                placeholder="# 프로젝트 상세 설명&#10;&#10;마크다운 문법으로 작성할 수 있습니다."
+              />
+            </div>
+            
+            {/* Start/End Date */}
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label htmlFor="startDate" className="block mb-2 font-semibold text-gray-700">시작 날짜 <span className="text-red-500">*</span></label>
+                <input
+                  id="startDate"
+                  type="date"
+                  value={startDate} // 🌟 오늘 날짜가 기본값
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full border border-gray-300 p-3 rounded-lg"
+                  required
+                />
+              </div>
+              <div className="flex-1">
+                <label htmlFor="endDate" className="block mb-2 font-semibold text-gray-700">종료 날짜</label>
+                <input
+                  id="endDate"
+                  type="date"
+                  value={endDate || ""}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full border border-gray-300 p-3 rounded-lg"
+                />
               </div>
             </div>
-            <div>
-              <label className="flex-1 px-15 py-2  mb-1 font-semibold gap-1">
-                Project Start
-              </label>
-              <input
-                type="date"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleInputChange}
-                className="border rounded p-2"
-              />
-              <label className="flex-1 px-15 py-2  mb-1 font-semibold gap-1">
-                End Project
-              </label>
-              <input
-                type="date"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleInputChange}
-                className="border rounded p-2"
-              />
+
+            {/* Visibility & Status (예시) */}
+            <div className="flex gap-4">
+                <div className="flex-1">
+                    <label htmlFor="visibility" className="block mb-2 font-semibold text-gray-700">공개 설정</label>
+                    <select
+                        id="visibility"
+                        value={visibility}
+                        onChange={(e) => setVisibility(e.target.value)}
+                        className="w-full border border-gray-300 p-3 rounded-lg"
+                    >
+                        <option value="public">Public (공개)</option>
+                        <option value="private">Private (비공개)</option>
+                    </select>
+                </div>
+                <div className="flex-1">
+                    <label htmlFor="status" className="block mb-2 font-semibold text-gray-700">진행 상태</label>
+                    <select
+                        id="status"
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                        className="w-full border border-gray-300 p-3 rounded-lg"
+                    >
+                        <option value="진행중">진행중</option>
+                        <option value="완료">완료</option>
+                        <option value="계획중">계획중</option>
+                    </select>
+                </div>
             </div>
 
-            {/* Description Textarea */}
-            <div>
-              <textarea
-                // id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="설명"
-                rows="20"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-700 bg-white text-gray-900 placeholder-gray-400 resize-vertical transition-colors resize-none"
-              />
-            </div>
+            {/* 미디어 및 기술 스택 추가 섹션은 TODO로 남겨둡니다. */}
+            {/* TODO: 미디어 파일 업로드 및 관리 UI */}
+            {/* TODO: 기술 스택 추가/선택 UI */}
 
-            {/* License Select */}
-            <div className="flex justify-end border-2 border-gray-300 p-2 rounded-xl">
-              <select
-                id="license"
-                name="license"
-                value={formData.license}
-                onChange={handleInputChange}
-                className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-700 bg-white text-gray-900 appearance-none cursor-pointer transition-colors"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23374151'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right 0.75rem center",
-                  backgroundSize: "1.5em 1.5em",
-                  paddingRight: "2.5rem",
-                }}
-              >
-                <option value="">Add a license</option>
-                <option value="none">None</option>
-                <option value="mit">MIT License</option>
-                <option value="apache-2.0">Apache License 2.0</option>
-                <option value="gpl-3.0">GNU GPL v3</option>
-                <option value="bsd-3-clause">BSD 3-Clause License</option>
-                <option value="isc">ISC License</option>
-                <option value="mpl-2.0">Mozilla Public License 2.0</option>
-                <option value="lgpl-3.0">GNU LGPL v3</option>
-              </select>
-            </div>
 
             {/* Submit Button */}
-            <div className="pt-4 flex justify-end">
-              <button
-                type="submit"
-                // 4. onClick 제거: 이 버튼은 type="submit"이므로 폼의 onSubmit(handleSubmit)을 실행합니다.
-                // onClick으로 navigate를 호출하면 submit이 완료되기 전에 페이지가 이동됩니다.
-                // onClick={() => navigate("/projects")}
-                className="py-4 px-6 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99]"
-                // 3. disabled 및 loading 텍스트 제거
-                // disabled={loading}
-              >
-                {/* {loading ? "Creating..." : "Create Project"} */}
-                Create Project
-              </button>
+            <div className="pt-4">
+                <button
+                    type="submit"
+                    className="w-full bg-green-600 text-white font-bold px-4 py-3 rounded-lg hover:bg-green-700 transition duration-150 shadow-md disabled:bg-gray-400"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? "프로젝트 등록 중..." : "프로젝트 등록"}
+                </button>
             </div>
           </form>
         </div>
@@ -225,4 +218,4 @@ const CreateProjects = () => {
   );
 };
 
-export default CreateProjects;
+export default CreateProject;
